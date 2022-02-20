@@ -185,12 +185,15 @@ function generateEmojiText(emoji) {
 }
 
 function main() {
-    const client = new Discord.Client();
+    const client = new Discord.Client({ intents: [
+        Discord.Intents.FLAGS.GUILDS,
+        Discord.Intents.FLAGS.GUILD_MESSAGES
+    ] });
     client.on('ready', () => {
         console.log(`logged in as ${client.user.tag}`);
         client.user.setStatus(`try "p help"`)
     });
-    client.on('message', handleMessage); //on message
+    client.on('messageCreate', handleMessage); //on message
     client.login(keys.discordKey);
 }
 
