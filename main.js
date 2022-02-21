@@ -71,7 +71,7 @@ function handleMessage(message) {
         let args = message.content.substring(PREFIX.length).split(" ");
         handleCommand(args, message);
     } else
-    if (message.content.includes("platy")) {
+    if (message.content.includes("platypus")) {
         let platy_count = message.content.match(/platy/g).length
         let offset = Math.floor(Math.random() * platys.length)
         let text = ""
