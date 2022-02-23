@@ -93,8 +93,8 @@ function handleMessage(message) {
             message.channel.send(text);
         }
     }
-    catch {
-        console.log("lol crash")
+    catch (e) {
+        console.log("lol crash", e)
     }
 }
 
