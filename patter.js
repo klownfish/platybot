@@ -36,32 +36,24 @@ class Patter {
             -1,
             -3
         ]
+
+        let y_scale = [
+            1,
+            0.8,
+            0.6,
+            0.8,
+            1
+        ]
+
         let hand_offset = [0, 0];
         let delay = 50;
+        let i = 0
 
-        ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[0], 150, 150);
-        ctx.drawImage(this.hand_frames[0], ...hand_offset);
-        gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[1], 150, 150);
-        ctx.drawImage(this.hand_frames[1], ...hand_offset);
-        gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[2], 150, 150);
-        ctx.drawImage(this.hand_frames[2], ...hand_offset);
-        gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[3], 150, 150);
-        ctx.drawImage(this.hand_frames[3], ...hand_offset);
-        gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[4], 150, 150);
-        ctx.drawImage(this.hand_frames[4], ...hand_offset);
-        gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})
+        for (let i = 0; i < 5; i++) {
+            ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[i], 150, 150);
+            ctx.drawImage(this.hand_frames[i], ...hand_offset);
+            gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})            
+        }
         
         let ret = new Promise((resolve, reject) => {
             gif.render();

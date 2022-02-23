@@ -7,9 +7,13 @@ const fs = require('fs')
 const valid_emojis = require('./emojiList.json')
 const Patter = require("./patter.js")
 const MarseyWriter = require("./marseyWriter")
+const Waifu = require("./waifu.js");
+const { waitForDebugger } = require('inspector');
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
+const waifu = new Waifu();
+
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
 const platys = [
@@ -59,27 +63,38 @@ Platybot prefix: "p "
 \t - p avatar @[user]
 \t\t * sends the user's avatar
 
-\t - platy
+\t - p waifu list
+\t\t * lists all waifu categories
+
+\t - p waifu [category]
+\t\t * sends a waifu image
+\t\t 
+\t - platypus
 \t\t * platy platy platy
 \`\`\`
 `
 
 function handleMessage(message) {
-    if (message.author.bot)
-        return;
-    if (message.content.toLowerCase().startsWith(PREFIX)) {
-        let args = message.content.substring(PREFIX.length).split(" ");
-        handleCommand(args, message);
-    } else
-    if (message.content.includes("platypus")) {
-        let platy_count = message.content.match(/platy/g).length
-        let offset = Math.floor(Math.random() * platys.length)
-        let text = ""
-        for (let i = 0; i < platy_count && i < 5; i++) {
-            text += platys[(offset + i) % platys.length];
-            text += "\n"
+    try {
+        if (message.author.bot)
+            return;
+        if (message.content.toLowerCase().startsWith(PREFIX)) {
+            let args = message.content.substring(PREFIX.length).split(" ");
+            handleCommand(args, message);
+        } else
+        if (message.content.includes("platypus")) {
+            let platy_count = message.content.match(/platy/g).length
+            let offset = Math.floor(Math.random() * platys.length)
+            let text = ""
+            for (let i = 0; i < platy_count && i < 5; i++) {
+                text += platys[(offset + i) % platys.length];
+                text += "\n"
+            }
+            message.channel.send(text);
         }
-        message.channel.send(text);
+    }
+    catch {
+        console.log("lol crash")
     }
 }
 
@@ -165,6 +180,28 @@ async function handleCommand(args, message) {
             }
             break;
 
+        case "waifu":
+            if (args[1] === null) {
+                message.channel.send("no category specified");
+            } else
+            if (args[1] === "list") {
+                i = 1;
+                text = "```"
+                for (let category of waifu.getCategories()) {
+                    text += category + (i++ % 3 == 0 ? "\n" : " ");
+                }
+                text += "```"
+                message.channel.send(text);
+            } else {
+                let waifu_pic = await waifu.getWaifu(args[1])
+                if (waifu_pic) {
+                    text = waifu_pic;
+                } else {
+                    text = "invalid category";
+                }
+                message.channel.send(text);
+            }
+            break;
         default:
             let maybe_emoji = generateEmojiText(args[0]);
             if (maybe_emoji) {
