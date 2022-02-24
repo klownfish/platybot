@@ -67,9 +67,7 @@ class MarseyWriter {
                     line++;
                     y += line_heights[line].ascent
                 }
-                x = 0
-
-                
+                x = 0   
             }
 
             if (char === "$") {
@@ -104,6 +102,9 @@ class MarseyWriter {
                 had_char_before = true;
             }
         }
+        //finish last box since the last line doesnt have a newline
+        ctx.fillStyle = background_color;
+        ctx.fillRect(x, y + line_heights[line].descent, max_width - x + 1, -(line_heights[line - 1].descent + line_heights[line].ascent + 1))
         return canvas.createPNGStream();
     }
 }
