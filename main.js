@@ -42,6 +42,9 @@ const help_text =
 \`\`\`
 Platybot prefix: "p "
 
+\t - p help
+\t\t view this page
+
 \t - p [name]
 \t\t * tries to send an emoji. other commands take precedence
 
@@ -60,6 +63,9 @@ Platybot prefix: "p "
 \t - p marseytext [text]
 \t\t * writes the text using a marsey font
 
+\t - p help marseytext
+\t\t * sends the marseytext help page
+
 \t - p avatar @[user]
 \t\t * sends the user's avatar
 
@@ -74,12 +80,36 @@ Platybot prefix: "p "
 \`\`\`
 `
 
+const marseytext_help_text = 
+`
+\`\`\`
+command: "p marseytext [text]"
+
+use $"color" to set the text color. example $"red"hello
+
+use #"color" to set the background color. example $"green"bubsy
+
+any css color + "none" is valid so pretty much all basic colors like orange, green e.t.c work.
+
+bigger example:
+
+p marseytext
+$"black"
+#"SkyBlue"BOT
+#"Violet"RIGHTS
+#"White"ARE
+#"Violet"HUMAN
+#"SkyBlue"RIGHTS
+
+\`\`\`
+` 
+
 function handleMessage(message) {
     try {
         if (message.author.bot)
             return;
         if (message.content.toLowerCase().startsWith(PREFIX)) {
-            let args = message.content.substring(PREFIX.length).split(" ");
+            let args = message.content.substring(PREFIX.length).split(/[ \n]/g);
             handleCommand(args, message);
         } else
         if (message.content.includes("platypus")) {
@@ -151,19 +181,27 @@ async function handleCommand(args, message) {
 
         case "marseytext":
             let bin = marsey_writer.getMarseyText(message.content.substr(args[0].length + 1 + PREFIX.length));
-            message.channel.send({
-                files: 
-                [
-                    {
-                        attachment: bin,
-                        name: "text.png"
-                    }
-                ]
-            });
+            if (bin) {
+                message.channel.send({
+                    files: 
+                    [
+                        {
+                            attachment: bin,
+                            name: "text.png"
+                        }
+                    ]
+                });
+            } else {
+                message.channel.send("invalid syntax")
+            }
             break;
 
         case "help":
-            text = help_text;
+            if (args[1] === "marseytext") {
+                text = marseytext_help_text;
+            } else {
+                text = help_text
+            }
             message.channel.send(text);
             break;
 
@@ -207,7 +245,7 @@ async function handleCommand(args, message) {
             if (maybe_emoji) {
                 text = maybe_emoji;
             } else {
-                text = "invalid command";
+                text = `invalid command. try "p help"`;
             }
             message.channel.send(text);
             break;
@@ -224,11 +262,14 @@ function generateEmojiText(emoji) {
 function main() {
     const client = new Discord.Client({ intents: [
         Discord.Intents.FLAGS.GUILDS,
-        Discord.Intents.FLAGS.GUILD_MESSAGES
+        Discord.Intents.FLAGS.GUILD_MESSAGES,
     ] });
     client.on('ready', () => {
         console.log(`logged in as ${client.user.tag}`);
-        client.user.setStatus(`try "p help"`)
+        client.user.setPresence({
+            activity: { name: 'Try "p help"' },
+            status: 'idle',
+          })
     });
     client.on('messageCreate', handleMessage); //on message
     client.login(keys.discordKey);
