@@ -22,7 +22,7 @@ class RocketAPI {
         let current_time = +new Date()
     
         if (current_time - this.cache_updated >= 60 * 5 * 100) {
-            let response = await axios.get("https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
+            let response = await axios.get("https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
             this.ll = response.data?.results[0]
             response = await axios.get("https://api.spacexdata.com/v4/launches/upcoming")
             this.spacex = response.data[0]
@@ -31,6 +31,7 @@ class RocketAPI {
 
         let embed = new MessageEmbed()
         embed.setColor('#ff6900')
+        let second_message = ""
         if (this.ll.name) {
             embed.setTitle(this.ll.name)
         }
@@ -57,19 +58,34 @@ class RocketAPI {
             }
             embed.addField('launches in', when_launch, false)
         }
-        if (this.ll?.launch_service_provider?.name == "SpaceX" && this.spacex?.links?.webcast) {
-            embed.setURL(this.spacex?.links?.webcast)
-            embed.addField("webcast", this.spacex?.links?.webcast, false)
+        //spacex specific
+        if (this.ll?.launch_service_provider?.name == "SpaceX") {
+            if (this.spacex?.links?.webcast) {
+                embed.setURL(this.spacex?.links?.webcast)
+                embed.addField("webcast", this.spacex?.links?.webcast, false)
+                second_message = this.spacex?.links?.webcast;
+            }
+
+            if (this.spacex?.links?.patch?.large) {
+                embed.setThumbnail(this.spacex?.links?.patch?.large)
+            }
+
         } else if (this.ll.vidURLs) {
             embed.setURL(this.ll.vidURLs[0])
             embed.addField("webcast", this.ll.vidURLs[0], false)
-
+            second_message = this.ll.vidURLs[0]
         }
 
         if (this.ll.image) {
             embed.setImage(this.ll.image)
         }
-        return { embeds: [embed] }
+
+        let out = []
+        out.push({ embeds: [embed] })
+        if (second_message) {
+            out.push(second_message)
+        }
+        return out
     }
 }
 

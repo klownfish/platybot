@@ -244,11 +244,9 @@ async function handleCommand(args, message) {
             break;
 
         case "rocket":
-            text = await rocket.getNextLaunch()
-            if (text) { 
-                message.channel.send(text);
-            } else {
-                message.channel.send("something borked")
+            let rocket_messages = await rocket.getNextLaunch()
+            for (let rocket_message of rocket_messages) {
+                message.channel.send(rocket_message);
             }
             break
 
