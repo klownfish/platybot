@@ -21,7 +21,7 @@ class RocketAPI {
         let current_time = +new Date()
         let next_launch
         if (current_time - this.cache_updated >= 60 * 5 * 100) {
-            let response = await axios.get("https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
+            let response = await axios.get("https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
             next_launch = response.data?.results[0]
             this.cache = next_launch
             this.cache_updated = current_time
