@@ -9,7 +9,7 @@ const { MessageEmbed } = require('discord.js');
 
 const ms_minute = 1000 * 60
 const ms_hour = ms_minute * 60
-const ms_day = ms_hour * 60
+const ms_day = ms_hour * 24
 
 class RocketAPI {
     constructor() {
