@@ -13,30 +13,29 @@ const ms_day = ms_hour * 60
 
 class RocketAPI {
     constructor() {
-        this.cache = {}
+        this.spacex = {}
+        this.ll = {}
         this.cache_updated = 0
     }
 
     async getNextLaunch() {
         let current_time = +new Date()
-        let next_launch
+    
         if (current_time - this.cache_updated >= 60 * 5 * 100) {
             let response = await axios.get("https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
-            next_launch = response.data?.results[0]
-            this.cache = next_launch
+            this.ll = response.data?.results[0]
+            response = await axios.get("https://api.spacexdata.com/v4/launches/upcoming")
+            this.spacex = response.data[0]
             this.cache_updated = current_time
-        } else {
-            next_launch = this.cache
         }
-
 
         let embed = new MessageEmbed()
-
-        if (next_launch.name) {
-            embed.setTitle(next_launch.name)
+        embed.setColor('#ff6900')
+        if (this.ll.name) {
+            embed.setTitle(this.ll.name)
         }
-        if (next_launch.net) {
-            let launch_date = +Date.parse(next_launch.net)
+        if (this.ll.net) {
+            let launch_date = +Date.parse(this.ll.net)
             let ms_to_launch = launch_date - current_time
             let days = Math.floor(ms_to_launch / ms_day)
             ms_to_launch -= days * ms_day
@@ -58,11 +57,17 @@ class RocketAPI {
             }
             embed.addField('launches in', when_launch, false)
         }
-        if (next_launch.vidURLs) {
-            embed.setURL(next_launch.vidURLs[0])
+        if (this.ll?.launch_service_provider?.name == "SpaceX" && this.spacex?.links?.webcast) {
+            embed.setURL(this.spacex?.links?.webcast)
+            embed.addField("webcast", this.spacex?.links?.webcast, false)
+        } else if (this.ll.vidURLs) {
+            embed.setURL(this.ll.vidURLs[0])
+            embed.addField("webcast", this.ll.vidURLs[0], false)
+
         }
-        if (next_launch.image) {
-            embed.setImage(next_launch.image)
+
+        if (this.ll.image) {
+            embed.setImage(this.ll.image)
         }
         return { embeds: [embed] }
     }
