@@ -8,11 +8,13 @@ const valid_emojis = require('./emojiList.json')
 const Patter = require("./patter.js")
 const MarseyWriter = require("./marseyWriter")
 const Waifu = require("./waifu.js");
+const Rocket = require("./rocket.js")
 const { waitForDebugger } = require('inspector');
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
 const waifu = new Waifu();
+const rocket = new Rocket();
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
@@ -240,6 +242,16 @@ async function handleCommand(args, message) {
                 message.channel.send(text);
             }
             break;
+
+        case "rocket":
+            text = await rocket.getNextLaunch()
+            if (text) { 
+                message.channel.send(text);
+            } else {
+                message.channel.send("something borked")
+            }
+            break
+
         default:
             let maybe_emoji = generateEmojiText(args[0]);
             if (maybe_emoji) {
