@@ -22,7 +22,7 @@ class RocketAPI {
         let current_time = +new Date()
     
         if (current_time - this.cache_updated >= 60 * 5 * 100) {
-            let response = await axios.get("https://lldev.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
+            let response = await axios.get("https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=1")
             this.ll = response.data?.results[0]
             response = await axios.get("https://api.spacexdata.com/v4/launches/upcoming")
             this.spacex = response.data[0]
@@ -46,13 +46,13 @@ class RocketAPI {
 
             let when_launch = ""
             if (days > 0) {
-                when_launch += `in ${days} days, ${hours} hours and ${minutes} minutes`
+                when_launch += `${days} days, ${hours} hours and ${minutes} minutes`
             } else
             if (hours > 0) {
-                when_launch += `in ${hours} hours and ${minutes} minutes`
+                when_launch += `${hours} hours and ${minutes} minutes`
             } else
             if (minutes > 0) {
-                when_launch += `in ${minutes} minutes`
+                when_launch += `${minutes} minutes`
             } else {
                 when_launch += "right now!"
             }
