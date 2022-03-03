@@ -24,11 +24,10 @@ class RocketAPI {
         if (current_time - this.cache_updated >= 60 * 5 * 100) {
             let response = await axios.get("https://ll.thespacedevs.com/2.2.0/launch/upcoming/?limit=1&hide_recent_previous=true")
             this.ll = response.data?.results[0]
-            response = await axios.get("https://api.spacexdata.com/v4/launches/upcoming")
+            response = await axios.get("https://api.spacexdata.com/v5/launches/upcoming")
             this.spacex = response.data[0]
             this.cache_updated = current_time
         }
-
         let embed = new MessageEmbed()
         embed.setColor('#ff6900')
         let second_message = ""
@@ -83,7 +82,7 @@ class RocketAPI {
         let out = []
         out.push({ embeds: [embed] })
         if (second_message) {
-            out.push(second_message)
+            //out.push(second_message)
         }
         return out
     }

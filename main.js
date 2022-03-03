@@ -76,7 +76,10 @@ Platybot prefix: "p "
 
 \t - p waifu [category]
 \t\t * sends a waifu image
-\t\t 
+
+\t - p rocket 
+\t\t *  sends information about the next upcoming rocket lanunch
+
 \t - platypus
 \t\t * platy platy platy
 \`\`\`
@@ -242,6 +245,11 @@ async function handleCommand(args, message) {
                 message.channel.send(text);
             }
             break;
+        
+        case "slap":
+            text = await waifu.getWaifu("slap")
+            message.channel.send(text)
+            break
 
         case "rocket":
             let rocket_messages = await rocket.getNextLaunch()
