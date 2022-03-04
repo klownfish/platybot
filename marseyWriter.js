@@ -45,6 +45,9 @@ class MarseyWriter {
             total_height += size.emHeightAscent + size.emHeightDescent;
             line_heights.push({ascent: size.emHeightAscent, descent: size.emHeightDescent})
         }
+        console.log(only_text)
+        console.log("----")
+        console.log(text)
         canvas.width = max_width;
         canvas.height = total_height;
 
@@ -55,6 +58,7 @@ class MarseyWriter {
         let x = 0;
         let line = 0;
         let had_char_before = false;
+        let lines_skipped = 0;
         for (let i = 0; i < text.length; i++) {
             let char = text[i]
             if (char === "\n") {
@@ -66,8 +70,10 @@ class MarseyWriter {
                     y += line_heights[line].descent
                     line++;
                     y += line_heights[line].ascent
+                } else {
+                    lines_skipped++;
                 }
-                x = 0   
+                x = 0
             }
 
             if (char === "$") {
@@ -88,13 +94,16 @@ class MarseyWriter {
                 text.indexOf(`"`, i + 1); 
                 let color = text.substr(i + 2, color_end - i - 2);
                 background_color = color;
-                i = color_end; 
+                i = color_end;
             } else {
+                if (!had_char_before && (char === " " || char === "\n")) {
+                    continue
+                }
                 let size = ctx.measureText(char);
 
                 if (background_color != "none") {
                     ctx.fillStyle = background_color;
-                    ctx.fillRect(x, y + size.emHeightDescent, size.width + 1, -(size.emHeightDescent + size.emHeightAscent + 1));
+                    ctx.fillRect(x, y + line_heights[line].descent, size.width + 1, -(line_heights[line].descent + line_heights[line].ascent + 1));
                 }
                 ctx.fillStyle = text_color
                 ctx.fillText(char, x, y)
@@ -102,9 +111,12 @@ class MarseyWriter {
                 had_char_before = true;
             }
         }
-        //finish last box since the last line doesnt have a newline
-        ctx.fillStyle = background_color;
-        ctx.fillRect(x, y + line_heights[line].descent, max_width - x + 1, -(line_heights[line - 1].descent + line_heights[line].ascent + 1))
+
+        if (background_color != "none") {
+            ctx.fillStyle = background_color;
+            let len = line_heights.length
+            ctx.fillRect(x, y + line_heights[len - 1].descent, max_width - x + 1, -(line_heights[len - 1].descent + line_heights[len - 1].ascent + 1))
+        }
         return canvas.createPNGStream();
     }
 }
