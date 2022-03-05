@@ -45,9 +45,7 @@ class MarseyWriter {
             total_height += size.emHeightAscent + size.emHeightDescent;
             line_heights.push({ascent: size.emHeightAscent, descent: size.emHeightDescent})
         }
-        console.log(only_text)
-        console.log("----")
-        console.log(text)
+
         canvas.width = max_width;
         canvas.height = total_height;
 
@@ -64,7 +62,7 @@ class MarseyWriter {
             if (char === "\n") {
                 if (background_color != "none") {
                     ctx.fillStyle = background_color;
-                    ctx.fillRect(x, y + line_heights[line].descent, max_width - x + 1, -(line_heights[line].descent + line_heights[line + 1].ascent + 1))
+                    ctx.fillRect(x, y + line_heights[line].descent, max_width - x + 1, -(line_heights[line].descent + line_heights[line].ascent + 1))
                 }
                 if (had_char_before) {
                     y += line_heights[line].descent
