@@ -26,31 +26,24 @@ class Patter {
         });
         let avatar_img = await loadImage(avatar);
 
-        let canvas = createCanvas(150, 150);
+        let avatar_offset_x = 15
+        let avatar_offset_y = 15
+        let canvas = createCanvas(150 + avatar_offset_x, 150 + avatar_offset_y);
         let ctx = canvas.getContext("2d");
-
-        let y_offset = [
-            -2,
-            -1,
-            0,
-            -1,
-            -3
-        ]
 
         let y_scale = [
             1,
+            0.9,
             0.8,
-            0.6,
-            0.8,
+            0.9,
             1
         ]
 
         let hand_offset = [0, 0];
         let delay = 50;
-        let i = 0
-
         for (let i = 0; i < 5; i++) {
-            ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, 0, y_offset[i], 150, 150);
+            ctx.fillRect(0, 0, 150, 150)
+            ctx.drawImage(avatar_img, 0, 0, avatar_img.width, avatar_img.height, avatar_offset_x, (1 - y_scale[i]) * 150 + avatar_offset_y, 150, 150 * y_scale[i]);
             ctx.drawImage(this.hand_frames[i], ...hand_offset);
             gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), {delay: delay})            
         }
