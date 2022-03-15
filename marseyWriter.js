@@ -16,15 +16,6 @@ class MarseyWriter {
         registerFont("./Marsey-Regular.ttf", {family: "Marsey"})
     }
 
-    getMaxWidth(text) {
-        text.replace(/\$".*" /, " ")
-        for (let char in text) {
-            if (char === "$") {
-                
-            }
-        }
-    }
-
     getMarseyText(text) {
         let font = "80px Marsey";
         let canvas = createCanvas(1,1);
