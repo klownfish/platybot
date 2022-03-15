@@ -55,7 +55,7 @@ class Patter {
         ]
 
         let hand_offset = [0, 0];
-        let delay = 55;
+        let delay = 52;
         ctx.fillStyle = "#36393E"
         for (let i = 0; i < 5; i++) {
             ctx.fillRect(0, 0, image_width, image_height)
