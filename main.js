@@ -10,9 +10,11 @@ const MarseyWriter = require("./marseyWriter")
 const Waifu = require("./waifu.js");
 const Rocket = require("./rocket.js")
 const { waitForDebugger } = require('inspector');
+const EelSlapper = require('./eel_slap.js');
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
+const eelSlapper = new EelSlapper();
 const waifu = new Waifu();
 const rocket = new Rocket();
 
@@ -250,6 +252,28 @@ async function handleCommand(args, message) {
             text = await waifu.getWaifu("slap")
             message.channel.send(text)
             break
+
+        case "eel":
+            let eel_mentioned = message.mentions.members;
+            let eel_sent_something = false;
+            for (let guild_member of eel_mentioned) {
+                eel_sent_something = true;
+                let url = `https://cdn.discordapp.com/avatars/${guild_member[1].user.id}/${guild_member[1].user.avatar}.png`
+                let bin = await eelSlapper.getEelSlapGif(url);
+                message.channel.send({
+                    files: 
+                    [
+                        {
+                            attachment: bin,
+                            name: "pat.gif"
+                        }
+                    ]
+                });
+            }
+            if (!eel_sent_something) {
+                message.channel.send("You need to mention someone");   
+            }
+            break;
 
         case "rocket":
             let rocket_messages = await rocket.getNextLaunch()
