@@ -50,8 +50,8 @@ class EelSlapper {
 
         let delay = 15;
         ctx.fillStyle = "yellowgreen"
-        //let wallpaper = this.wallpapers[Math.floor(Math.random() * this.wallpapers.length)]
-        let wallpaper = this.wallpapers[0]
+        let wallpaper = this.wallpapers[Math.floor(Math.random() * this.wallpapers.length)]
+        //let wallpaper = this.wallpapers[0]
         for (let i = 0; i < this.eel_frames.length; i++) {
             if (i >= start_move_at) {
                 avatar_x += move_per_frame;
