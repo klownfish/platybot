@@ -24,7 +24,7 @@ class EelSlapper {
             await loadImage("./eel_slap/wp_school.png"),
             await loadImage("./eel_slap/wp_forest.png"),
             await loadImage("./eel_slap/wp_trench.png"),
-            await loadImage("./eel_slap/wp_cyberpunk.png")
+            await loadImage("./eel_slap/wp_cyberpunk.png"),
         ]
     }
 

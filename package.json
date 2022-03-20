@@ -2,10 +2,13 @@
     "name": "platybot",
     "version": "1.0.0",
     "dependencies": {
+        "@discordjs/voice": "^0.8.0",
+        "axios": "0.26.0",
         "canvas": "^2.9.0",
+        "discord-player": "^5.2.2",
+        "discord-ytdl-core": "^5.0.4",
         "discord.js": "^13.6.0",
         "gif.node": "^0.1.0",
-        "package.json": "^2.0.1",
-        "axios": "0.26.0"
+        "package.json": "^2.0.1"
     }
 }

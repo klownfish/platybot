@@ -9,8 +9,10 @@ const Patter = require("./patter.js")
 const MarseyWriter = require("./marseyWriter")
 const Waifu = require("./waifu.js");
 const Rocket = require("./rocket.js")
-const { waitForDebugger } = require('inspector');
 const EelSlapper = require('./eel_slap.js');
+const ytdl = require("discord-ytdl-core");
+const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
+const { channel } = require('diagnostics_channel');
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
@@ -20,6 +22,8 @@ const rocket = new Rocket();
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
+const THEME_CACHE = "./user_themes.json"
+const PLAY_THEME_FOR = 15;
 const platys = [
     "https://i.imgur.com/Hr5GHEe.jpg",
     "https://i.imgur.com/uWZMHNG.jpg",
@@ -109,7 +113,46 @@ $"black"
 #"SkyBlue"RIGHTS
 
 \`\`\`
-` 
+`
+let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
+
+let start_time = {}
+async function playTheme(channelId, guild, userId) {
+    if (!themes[userId]) {
+        return
+    }
+    const connection = joinVoiceChannel({
+        channelId: channelId,
+        guildId: guild.id,
+        adapterCreator: guild.voiceAdapterCreator
+    });
+    let stream = ytdl(themes[userId], {
+        filter: "audioonly",
+        fmt: "mp3",
+    })
+
+    let player = createAudioPlayer()
+    let resource = createAudioResource(stream)
+    player.play(resource)
+    connection.subscribe(player);
+    const now = new Date()
+    start_time[channelId] = now.getTime()
+    setTimeout(() => {
+        const now = new Date()
+        if (now.getTime() - start_time[channelId] < PLAY_THEME_FOR * 1000 - 500) {
+            return
+        }
+        stream.destroy()
+        player.stop()
+        connection.disconnect()
+    }, PLAY_THEME_FOR * 1000);
+}
+
+function handleVoiceState(old_state, new_state) {
+    if(old_state.channelId === null && new_state.channelId !== null) {
+        playTheme(new_state.channelId, new_state.guild, new_state.id)
+    }
+}
 
 function handleMessage(message) {
     try {
@@ -275,6 +318,25 @@ async function handleCommand(args, message) {
             }
             break;
 
+        case "join":
+            let channel = message.member?.voice.channel
+            if (channel) {
+                playTheme(channel.id, channel.guild, message.author.id);
+            } else {
+                message.channel.send("not in a voice channel")
+            }
+            break;
+
+        case "theme":
+            if (ytdl.validateURL(args[1])) {
+                themes[message.author.id] = args[1];
+                message.channel.send("updated your theme song")
+                fs.writeFileSync(THEME_CACHE, JSON.stringify(themes))
+            } else {
+                message.channel.send("not a valid URL")
+            }
+            break;
+
         case "rocket":
             let rocket_messages = await rocket.getNextLaunch()
             for (let rocket_message of rocket_messages) {
@@ -305,6 +367,7 @@ function main() {
     const client = new Discord.Client({ intents: [
         Discord.Intents.FLAGS.GUILDS,
         Discord.Intents.FLAGS.GUILD_MESSAGES,
+        Discord.Intents.FLAGS.GUILD_VOICE_STATES
     ] });
     client.on('ready', () => {
         console.log(`logged in as ${client.user.tag}`);
@@ -314,6 +377,7 @@ function main() {
           })
     });
     client.on('messageCreate', handleMessage); //on message
+    client.on('voiceStateUpdate', handleVoiceState);
     client.login(keys.discordKey);
 }
 
