@@ -328,7 +328,10 @@ async function handleCommand(args, message) {
             break;
 
         case "theme":
-            if (ytdl.validateURL(args[1])) {
+            if (args[1] === "none") {
+                themes[message.author.id] = null;   
+            }
+            else if (ytdl.validateURL(args[1])) {
                 themes[message.author.id] = args[1];
                 message.channel.send("updated your theme song")
                 fs.writeFileSync(THEME_CACHE, JSON.stringify(themes))

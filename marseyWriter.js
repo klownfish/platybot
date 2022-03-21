@@ -17,6 +17,9 @@ class MarseyWriter {
     }
 
     getMarseyText(text) {
+        if (text.length > 500) {
+            text = "fuck off"
+        }
         let font = "80px Marsey";
         let canvas = createCanvas(1,1);
 
