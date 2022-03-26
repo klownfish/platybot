@@ -12,7 +12,7 @@ const Rocket = require("./rocket.js")
 const EelSlapper = require('./eel_slap.js');
 const ytdl = require("discord-ytdl-core");
 const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
-const { channel } = require('diagnostics_channel');
+
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
@@ -181,6 +181,7 @@ function handleMessage(message) {
 async function handleCommand(args, message) {
     let i = 0; // i lob jabascribd xdddd
     let text = ""
+    message.channel.sendTyping();
     switch (args[0]) {
         case "marseys":
             text = "https://rdrama.net/marseys"
