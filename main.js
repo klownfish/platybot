@@ -12,11 +12,13 @@ const Rocket = require("./rocket.js")
 const EelSlapper = require('./eel_slap.js');
 const ytdl = require("discord-ytdl-core");
 const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
+const Deleter = require('./deleter.js');
 
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
 const eelSlapper = new EelSlapper();
+const deleter = new Deleter();
 const waifu = new Waifu();
 const rocket = new Rocket();
 
@@ -309,12 +311,34 @@ async function handleCommand(args, message) {
                     [
                         {
                             attachment: bin,
-                            name: "pat.gif"
+                            name: "eel.gif"
                         }
                     ]
                 });
             }
             if (!eel_sent_something) {
+                message.channel.send("You need to mention someone");   
+            }
+            break;
+
+        case "delete":
+            let delete_mentioned = message.mentions.members;
+            let delete_sent_something = false;
+            for (let guild_member of delete_mentioned) {
+                delete_sent_something = true;
+                let url = `https://cdn.discordapp.com/avatars/${guild_member[1].user.id}/${guild_member[1].user.avatar}.png`
+                let bin = await deleter.getDeleteGif(url);
+                message.channel.send({
+                    files: 
+                    [
+                        {
+                            attachment: bin,
+                            name: "delete.gif"
+                        }
+                    ]
+                });
+            }
+            if (!delete_sent_something) {
                 message.channel.send("You need to mention someone");   
             }
             break;
