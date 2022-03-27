@@ -15,12 +15,12 @@ class Deleter {
         let avatar_img = await loadImage(avatar);
 
         let delay = 20;
-        let frames = 80;
+        let frames = 40;
         let image_width = 200
         let image_height = 200
 
         let rotation_ang_vel = 0.05;
-        let scale_dt = 0.015;
+        let scale_dt = 0.03;
 
 
         let canvas = createCanvas(image_width, image_height);
