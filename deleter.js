@@ -44,7 +44,7 @@ class Deleter {
             ctx.rotate(rotation)
             ctx.drawImage(avatar_img,0, 0, avatar_img.width, avatar_img.height, -image_width / 2 * scale, -image_height / 2 * scale, image_width * scale, image_height * scale);
             ctx.restore()
-            gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), { delay: i == 0 ? 3000 : delay })
+            gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), { delay: i == 0 ? 1000 : delay })
         }
         ctx.fillRect(0, 0, image_width, image_height)
         gif.addFrame(ctx.getImageData(0, 0, canvas.width, canvas.height), { delay: 160000 })
