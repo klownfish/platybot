@@ -14,6 +14,12 @@ const ytdl = require("discord-ytdl-core");
 const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const Deleter = require('./deleter.js');
 
+const client = new Discord.Client({ intents: [
+    Discord.Intents.FLAGS.GUILDS,
+    Discord.Intents.FLAGS.GUILD_MESSAGES,
+    Discord.Intents.FLAGS.GUILD_VOICE_STATES,
+    Discord.Intents.FLAGS.GUILD_MEMBERS,
+] });
 
 const marsey_writer = new MarseyWriter();
 const patter = new Patter();
@@ -371,6 +377,24 @@ async function handleCommand(args, message) {
                 message.channel.send(rocket_message);
             }
             break
+        
+        case "rules":
+            message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
+            break;
+        /*
+        case "secret_command_lol":
+            const guild = await client.guilds.fetch(message.channel.guildId)
+            const members = await guild.members.fetch() // returns Collection
+            try {
+                fs.mkdirSync("./" + message.channel.guildId)
+            } catch{}
+            for (let member of members) {
+                let url = member[1].displayAvatarURL()
+                var request = require("request");
+                request(url).pipe(fs.createWriteStream(`./${message.channel.guildId}/${member[1].displayName}.webp`))
+            }
+            break
+        */
 
         default:
             let maybe_emoji = generateEmojiText(args[0]);
@@ -391,12 +415,8 @@ function generateEmojiText(emoji) {
     return ""
 }
 
+
 function main() {
-    const client = new Discord.Client({ intents: [
-        Discord.Intents.FLAGS.GUILDS,
-        Discord.Intents.FLAGS.GUILD_MESSAGES,
-        Discord.Intents.FLAGS.GUILD_VOICE_STATES
-    ] });
     client.on('ready', () => {
         console.log(`logged in as ${client.user.tag}`);
         client.user.setPresence({
