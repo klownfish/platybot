@@ -381,6 +381,7 @@ async function handleCommand(args, message) {
         case "rules":
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
             break;
+
         /*
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
