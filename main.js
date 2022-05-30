@@ -11,8 +11,8 @@ const Waifu = require("./waifu.js");
 const Rocket = require("./rocket.js")
 const EelSlapper = require('./eel_slap.js');
 const ytdl = require("discord-ytdl-core");
-const { joinVoiceChannel, createAudioPlayer, createAudioResource } = require('@discordjs/voice');
 const Deleter = require('./deleter.js');
+const { PlayerManager, AudioYoutube } = require('./playerManager.js');
 
 const client = new Discord.Client({ intents: [
     Discord.Intents.FLAGS.GUILDS,
@@ -124,41 +124,19 @@ $"black"
 `
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
-let start_time = {}
-async function playTheme(channelId, guild, userId) {
-    if (!themes[userId]) {
-        return
-    }
-    const connection = joinVoiceChannel({
-        channelId: channelId,
-        guildId: guild.id,
-        adapterCreator: guild.voiceAdapterCreator
-    });
-    let stream = ytdl(themes[userId], {
-        filter: "audioonly",
-        fmt: "mp3",
-    })
+let player_managers = {}
 
-    let player = createAudioPlayer()
-    let resource = createAudioResource(stream)
-    player.play(resource)
-    connection.subscribe(player);
-    const now = new Date()
-    start_time[channelId] = now.getTime()
-    setTimeout(() => {
-        const now = new Date()
-        if (now.getTime() - start_time[channelId] < PLAY_THEME_FOR * 1000 - 500) {
-            return
-        }
-        stream.destroy()
-        player.stop()
-        connection.disconnect()
-    }, PLAY_THEME_FOR * 1000);
-}
 
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
-        playTheme(new_state.channelId, new_state.guild, new_state.id)
+        if (themes[new_state.id]) {
+            let guildId = new_state.guild.id
+            if (!(guildId in player_managers)) {
+                player_managers[guildId] = new PlayerManager(new_state.guild);
+            }
+            let audio = new AudioYoutube(themes[new_state.id], 15)
+            player_managers[guildId].interrupt_play(audio, new_state.channelId)
+        }
     }
 }
 
@@ -252,6 +230,34 @@ async function handleCommand(args, message) {
                 });
             } else {
                 message.channel.send("invalid syntax")
+            }
+            break;
+
+        case "play":
+            let channel = message.member?.voice.channel
+            if (!(message.channel.guildId in player_managers)) {
+                player_managers[message.channel.guildId] = new PlayerManager(message.channel.guild);
+            }
+
+            if (channel) {
+                let link;
+                if (message.mentions.members.length > 0) {
+                    link = themes[message.mentions.members.entries().next().value[0]]
+                    if (!link) {
+                        message.channel.send("user does not have a theme");
+                        return;
+                    }
+                } else {
+                    link = args[1];
+                }
+                if (!ytdl.validateURL(link)) {
+                    message.channel.send("invalid link");
+                    return;
+                }
+                let audio = new AudioYoutube(link)
+                player_managers[message.channel.guildId].play(audio, channel.id)
+            } else {
+                message.channel.send("not in a voice channel")
             }
             break;
 
@@ -349,15 +355,6 @@ async function handleCommand(args, message) {
             }
             break;
 
-        case "join":
-            let channel = message.member?.voice.channel
-            if (channel) {
-                playTheme(channel.id, channel.guild, message.author.id);
-            } else {
-                message.channel.send("not in a voice channel")
-            }
-            break;
-
         case "theme":
             if (args[1] === "none") {
                 themes[message.author.id] = null;   
@@ -382,7 +379,7 @@ async function handleCommand(args, message) {
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
             break;
 
-        /*
+        
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
             const members = await guild.members.fetch() // returns Collection
@@ -395,7 +392,7 @@ async function handleCommand(args, message) {
                 request(url).pipe(fs.createWriteStream(`./${message.channel.guildId}/${member[1].displayName}.webp`))
             }
             break
-        */
+        
 
         default:
             let maybe_emoji = generateEmojiText(args[0]);
