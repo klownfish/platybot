@@ -241,7 +241,8 @@ async function handleCommand(args, message) {
 
             if (channel) {
                 let link;
-                if (message.mentions.members.length > 0) {
+                console.log()
+                if (message.mentions.members.size > 0) {
                     link = themes[message.mentions.members.entries().next().value[0]]
                     if (!link) {
                         message.channel.send("user does not have a theme");
@@ -250,6 +251,7 @@ async function handleCommand(args, message) {
                 } else {
                     link = args[1];
                 }
+                console.log(link);
                 if (!ytdl.validateURL(link)) {
                     message.channel.send("invalid link");
                     return;
@@ -268,7 +270,7 @@ async function handleCommand(args, message) {
         case "skip":
             player_managers[message.channel.guildId].skip()
             break;
-            
+
         case "help":
             if (args[1] === "marseytext") {
                 text = marseytext_help_text;
