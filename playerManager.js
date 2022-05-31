@@ -114,11 +114,17 @@ class PlayerManager {
     }
 
     stop() {
-
+        this.queue = []
+        this.skip()
     }
 
     skip() {
-
+        if (this.main_playing) {
+            this.main_player.stop()
+        }
+        if (this.interrupt_playing) {
+            this.interrupt_player.stop()
+        }
     }
 
     on_main_state_change(old_state, new_state) {

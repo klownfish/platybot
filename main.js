@@ -261,6 +261,14 @@ async function handleCommand(args, message) {
             }
             break;
 
+        case "stop":
+            player_managers[message.channel.guildId].stop()
+            break
+        
+        case "skip":
+            player_managers[message.channel.guildId].skip()
+            break;
+            
         case "help":
             if (args[1] === "marseytext") {
                 text = marseytext_help_text;
