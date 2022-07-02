@@ -19,6 +19,7 @@ const client = new Discord.Client({ intents: [
     Discord.Intents.FLAGS.GUILD_MESSAGES,
     Discord.Intents.FLAGS.GUILD_VOICE_STATES,
     Discord.Intents.FLAGS.GUILD_MEMBERS,
+    Discord.Intents.FLAGS.GUILD_PRESENCES
 ] });
 
 const marsey_writer = new MarseyWriter();
@@ -32,6 +33,9 @@ const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
 const THEME_CACHE = "./user_themes.json"
 const PLAY_THEME_FOR = 15;
+
+const DEFAULT_NAME = "platybot"
+const DEFAULT_PFP = "./avatar.jpeg"
 const platys = [
     "https://i.imgur.com/Hr5GHEe.jpg",
     "https://i.imgur.com/uWZMHNG.jpg",
@@ -127,6 +131,13 @@ let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 let player_managers = {}
 
 
+function delay(milisec) {
+    return new Promise(resolve => {
+        setTimeout(() => { resolve('') }, milisec);
+    })
+}
+ 
+
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
         if (themes[new_state.id]) {
@@ -140,13 +151,13 @@ function handleVoiceState(old_state, new_state) {
     }
 }
 
-function handleMessage(message) {
+async function handleMessage(message) {
     try {
         if (message.author.bot)
             return;
         if (message.content.toLowerCase().startsWith(PREFIX)) {
             let args = message.content.substring(PREFIX.length).split(/[ \n]/g);
-            handleCommand(args, message);
+            await handleCommand(args, message);
         } else
         if (message.content.includes("platypus")) {
             let platy_count = message.content.match(/platy/g).length
@@ -167,7 +178,7 @@ function handleMessage(message) {
 async function handleCommand(args, message) {
     let i = 0; // i lob jabascribd xdddd
     let text = ""
-    message.channel.sendTyping();
+    await message.channel.sendTyping();
     switch (args[0]) {
         case "marseys":
             text = "https://rdrama.net/marseys"
@@ -241,7 +252,6 @@ async function handleCommand(args, message) {
 
             if (channel) {
                 let link;
-                console.log()
                 if (message.mentions.members.size > 0) {
                     link = themes[message.mentions.members.entries().next().value[0]]
                     if (!link) {
@@ -251,7 +261,6 @@ async function handleCommand(args, message) {
                 } else {
                     link = args[1];
                 }
-                console.log(link);
                 if (!ytdl.validateURL(link)) {
                     message.channel.send("invalid link");
                     return;
@@ -262,13 +271,29 @@ async function handleCommand(args, message) {
                 message.channel.send("not in a voice channel")
             }
             break;
-
+            
+            
         case "stop":
             player_managers[message.channel.guildId].stop()
             break
         
         case "skip":
             player_managers[message.channel.guildId].skip()
+            break;
+        
+        case "clone":
+            message.delete()
+            let doppelganger = message.mentions.members.first()
+            if (doppelganger != null) {
+                // await message.guild.me.setNickname("")
+                let name = doppelganger.nickname ? doppelganger.nickname : doppelganger.user.username
+                let content = message.content.substr(args[0].length + args[1].length + 2 + PREFIX.length)
+                let webhook = await message.channel.createWebhook(name, {
+                    avatar: doppelganger.displayAvatarURL(),
+                })
+                webhook.send(content)
+            }
+
             break;
 
         case "help":
