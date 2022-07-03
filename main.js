@@ -178,7 +178,6 @@ async function handleMessage(message) {
 async function handleCommand(args, message) {
     let i = 0; // i lob jabascribd xdddd
     let text = ""
-    await message.channel.sendTyping();
     switch (args[0]) {
         case "marseys":
             text = "https://rdrama.net/marseys"
@@ -348,6 +347,7 @@ async function handleCommand(args, message) {
             break
 
         case "eel":
+            await message.channel.sendTyping();
             let eel_mentioned = message.mentions.members;
             let eel_sent_something = false;
             for (let guild_member of eel_mentioned) {
@@ -370,6 +370,7 @@ async function handleCommand(args, message) {
             break;
 
         case "delete":
+            await message.channel.sendTyping();
             let delete_mentioned = message.mentions.members;
             let delete_sent_something = false;
             for (let guild_member of delete_mentioned) {
