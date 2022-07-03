@@ -291,7 +291,8 @@ async function handleCommand(args, message) {
                 let webhook = await message.channel.createWebhook(name, {
                     avatar: doppelganger.displayAvatarURL(),
                 })
-                webhook.send(content)
+                await webhook.send(content)
+                await webhook.delete()
             }
 
             break;
