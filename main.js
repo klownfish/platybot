@@ -172,7 +172,7 @@ async function handleMessage(message) {
             let current_time = +Date.now()
             let ms_since_last = current_time - last_gnosti
             last_gnosti = +Date.now()
-            if (ms_since_last < 5 * 60 * 1000) {
+            if (ms_since_last < 1 * 60 * 1000) {
                 return
             }
             let days = Math.floor(ms_since_last / (1000 * 60 * 60 * 24))
@@ -196,7 +196,7 @@ async function handleMessage(message) {
             if (seconds > 0) {
                 ago_text += `${seconds} seconds`
             }
-            message.channel.send("gnosticism last mentioned " + ago_text + " ago!")
+            message.channel.send("gnosticism was last mentioned " + ago_text + " ago!")
         }
     }
     catch (e) {
