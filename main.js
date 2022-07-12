@@ -129,7 +129,7 @@ $"black"
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
 let player_managers = {}
-
+let last_gnosti = +Date.now()
 
 function delay(milisec) {
     return new Promise(resolve => {
@@ -137,7 +137,6 @@ function delay(milisec) {
     })
 }
  
-
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
         if (themes[new_state.id]) {
@@ -168,6 +167,36 @@ async function handleMessage(message) {
                 text += "\n"
             }
             message.channel.send(text);
+        } else
+        if (message.content.includes("gnosti")) {
+            let current_time = +Date.now()
+            let ms_since_last = current_time - last_gnosti
+            last_gnosti = +Date.now()
+            if (ms_since_last < 1 * 1000) {
+                return
+            }
+            let days = Math.floor(ms_since_last / (1000 * 60 * 60 * 24))
+            ms_since_last -= days * 1000 * 60 * 60 * 24
+            let hours = Math.floor(ms_since_last / (1000 * 60 * 60)) 
+            ms_since_last -= hours * 1000 * 60 * 60
+            let minutes = Math.floor(ms_since_last / (1000 * 60))
+            ms_since_last -= minutes * 1000 * 60
+            let seconds = Math.floor(ms_since_last / 1000)
+
+            let ago_text = ""
+            if (days > 0) {
+                ago_text += `${days} days, ${hours} hours and ${minutes} minutes`
+            } else
+            if (hours > 0) {
+                ago_text += `${hours} hours and ${minutes} minutes`
+            } else
+            if (minutes > 0) {
+                ago_text += `${minutes} minutes and ${seconds} seconds`
+            } else
+            if (seconds > 0) {
+                ago_text += `${seconds} seconds`
+            }
+            message.channel.send("gnosticism last mentioned " + ago_text + " ago!")
         }
     }
     catch (e) {
