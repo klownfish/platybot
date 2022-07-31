@@ -21,7 +21,7 @@ const THEME_CACHE = "./user_themes.json"
 const PLAY_THEME_FOR = 15;
 const AI_COST = 30
 const AI_MAX_DEBT = 60
-const AI_HISTORY = 5
+const AI_HISTORY = 4
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -181,6 +181,7 @@ async function handleMessage(message) {
             let prompt = `platybot is a chatbot that enthusiatically answers questions with friendly responses:\n`
             if (last_ai_requests.length > AI_HISTORY) {
                 last_ai_requests.shift()
+                last_ai_requests.shift()
             } 
             
             last_ai_requests.push("Human: " + user_prompt)
@@ -195,8 +196,8 @@ async function handleMessage(message) {
                 stop: ["\n"]
             })
             
-            // console.log(prompt)
-            // console.log(response)
+            console.log(prompt)
+            console.log(response)
             user_obj.last_prompt = +Date.now() / 1000
             user_obj.debt += AI_COST
             console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
