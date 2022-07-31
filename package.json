@@ -8,6 +8,7 @@
         "discord-ytdl-core": "latest",
         "discord.js": "latest",
         "gif.node": "latest",
+        "openai-nodejs": "^1.1.0",
         "package.json": "latest",
         "request": "latest",
         "ytdl-core": "latest"

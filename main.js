@@ -13,26 +13,15 @@ const EelSlapper = require('./eel_slap.js');
 const ytdl = require("discord-ytdl-core");
 const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube } = require('./playerManager.js');
-
-const client = new Discord.Client({ intents: [
-    Discord.Intents.FLAGS.GUILDS,
-    Discord.Intents.FLAGS.GUILD_MESSAGES,
-    Discord.Intents.FLAGS.GUILD_VOICE_STATES,
-    Discord.Intents.FLAGS.GUILD_MEMBERS,
-    Discord.Intents.FLAGS.GUILD_PRESENCES
-] });
-
-const marsey_writer = new MarseyWriter();
-const patter = new Patter();
-const eelSlapper = new EelSlapper();
-const deleter = new Deleter();
-const waifu = new Waifu();
-const rocket = new Rocket();
+const OpenAI = require('openai-nodejs');
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
 const THEME_CACHE = "./user_themes.json"
 const PLAY_THEME_FOR = 15;
+const AI_COST = 30
+const AI_MAX_DEBT = 60
+const AI_HISTORY = 5
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -126,17 +115,30 @@ $"black"
 
 \`\`\`
 `
+
+const client = new Discord.Client({ intents: [
+    Discord.Intents.FLAGS.GUILDS,
+    Discord.Intents.FLAGS.GUILD_MESSAGES,
+    Discord.Intents.FLAGS.GUILD_VOICE_STATES,
+    Discord.Intents.FLAGS.GUILD_MEMBERS,
+    Discord.Intents.FLAGS.GUILD_PRESENCES
+] });
+
+const marsey_writer = new MarseyWriter();
+const patter = new Patter();
+const eelSlapper = new EelSlapper();
+const deleter = new Deleter();
+const waifu = new Waifu();
+const rocket = new Rocket();
+const ai_client = new OpenAI(keys.openaiKey)
+
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
 let player_managers = {}
 let last_gnosti = +Date.now()
+let ai_requests = {};
+let last_ai_requests = []
 
-function delay(milisec) {
-    return new Promise(resolve => {
-        setTimeout(() => { resolve('') }, milisec);
-    })
-}
- 
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
         if (themes[new_state.id]) {
@@ -144,7 +146,7 @@ function handleVoiceState(old_state, new_state) {
             if (!(guildId in player_managers)) {
                 player_managers[guildId] = new PlayerManager(new_state.guild);
             }
-            let audio = new AudioYoutube(themes[new_state.id], 15)
+            let audio = new AudioYoutube(themes[new_state.id], PLAY_THEME_FOR)
             player_managers[guildId].interrupt_play(audio, new_state.channelId)
         }
     }
@@ -158,6 +160,50 @@ async function handleMessage(message) {
             let args = message.content.substring(PREFIX.length).split(/[ \n]/g);
             await handleCommand(args, message);
         } else
+        if (message.content.includes("platybot")) {
+            let user_prompt = message.content.trim()
+            if (user_prompt.length > 500) {
+                return
+            }
+            let user_obj = ai_requests[message.author.snowflake]
+            if (user_obj) {
+                let delay = +Date.now() / 1000 - user_obj.last_prompt 
+                user_obj.debt = Math.max(user_obj.debt - delay, 0)
+                if (user_obj.debt > AI_MAX_DEBT) {
+                    message.channel.send(`Please wait ${user_obj.debt - AI_MAX_DEBT} seconds. This thing costs actual money lmao`)
+                    return
+                }
+            } else {
+                ai_requests[message.author.snowflake] = {debt:0, last_prompt:0}
+                user_obj = ai_requests[message.author.snowflake];
+            }
+
+            let prompt = `platybot is a chatbot that enthusiatically answers questions with friendly responses:\n`
+            if (last_ai_requests.length > AI_HISTORY) {
+                last_ai_requests.shift()
+            } 
+            
+            last_ai_requests.push("Human: " + user_prompt)
+            for (let v of last_ai_requests) {
+                prompt += v + "\n"
+            }
+            prompt += "Platybot: "
+            let response = await ai_client.complete(prompt, {
+                max_tokens: 100,
+                temperature: 0.6,
+                n: 1,
+                stop: ["\n"]
+            })
+            
+            // console.log(prompt)
+            // console.log(response)
+            user_obj.last_prompt = +Date.now() / 1000
+            user_obj.debt += AI_COST
+            console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
+            message.channel.send(response.choices[0].text.trim())
+
+            last_ai_requests.push("Platybot: " + response.choices[0].text.trim())
+        }
         if (message.content.includes("platypus")) {
             let platy_count = message.content.match(/platy/g).length
             let offset = Math.floor(Math.random() * platys.length)
