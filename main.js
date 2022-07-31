@@ -160,7 +160,7 @@ async function handleMessage(message) {
             let args = message.content.substring(PREFIX.length).split(/[ \n]/g);
             await handleCommand(args, message);
         } else
-        if (message.content.includes("platybot")) {
+        if (message.content.toLowerCase().includes("platybot")) {
             let user_prompt = message.content.trim()
             if (user_prompt.length > 500) {
                 return
