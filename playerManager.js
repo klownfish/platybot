@@ -135,11 +135,11 @@ class PlayerManager {
         }
     }
 
-    async set_repeat(status) {
+    set_repeat(status) {
         this.repeat = status 
     }
 
-    async get_repeat() {
+    get_repeat() {
         return this.repeat
     }
 
