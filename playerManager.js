@@ -73,7 +73,7 @@ class PlayerManager {
         this.interrupt_player.on("error", console.log)
     }
 
-    async try_to_connect() {
+    try_to_connect() {
         this.connection = joinVoiceChannel({
             channelId: this.channelId,
             guildId: this.guild.id,
@@ -81,7 +81,7 @@ class PlayerManager {
         });
     }
 
-    async try_to_disconnect() {
+    try_to_disconnect() {
         if (!this.main_playing && !this.interrupt_playing) {
             this.connection.disconnect();
         }
@@ -122,16 +122,16 @@ class PlayerManager {
     async stop() {
         this.repeat = false;
         this.queue = []
-        this.skip()
+        await this.skip()
     }
 
     async skip() {
         this.repeat = false;
         if (this.main_playing) {
-            this.main_player.stop()
+            await this.main_player.stop()
         }
         if (this.interrupt_playing) {
-            this.interrupt_player.stop()
+            await this.interrupt_player.stop()
         }
     }
 
@@ -147,13 +147,13 @@ class PlayerManager {
         if (new_state.status == AudioPlayerStatus.Idle) {
             await this.main_audio.stop_func();
             if (this.repeat) {
-                let resource = this.main_audio.start_func()
+                let resource = await this.main_audio.start_func()
                 this.main_player.play(resource)
                 return;
             }
             this.main_audio = this.queue.shift()
             if (this.main_audio != null) {
-                let resource = this.main_audio.start_func()
+                let resource = await this.main_audio.start_func()
                 this.main_player.play(resource)
             } else {
                 this.main_playing = false;
@@ -168,7 +168,7 @@ class PlayerManager {
             if (this.interrupt_want_to_play) {
                 this.interrupt_audio = this.interrupt_want_to_play;
                 this.interrupt_want_to_play = null;
-                let resource = this.interrupt_audio.start_func()
+                let resource = await this.interrupt_audio.start_func()
                 this.interrupt_player.play(resource);
             } else {
                 this.connection.subscribe(this.main_player);
