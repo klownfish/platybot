@@ -1,6 +1,7 @@
 "use strict";
 
-const ytdl = require("discord-ytdl-core");
+const ytdl = require('ytdl-core-discord');
+
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, PlayerSubscription, AudioPlayer, AudioPlayerStatus } = require('@discordjs/voice');
 
 class AudioDescriptor {
@@ -18,8 +19,8 @@ class AudioYoutube {
         this.timeout_func = this.timeout_func.bind(this)
     }
 
-    start_func() {
-        this.stream = ytdl(this.link, {
+    async start_func() {
+        this.stream = await ytdl(this.link, {
             filter: "audioonly",
             fmt: "mp3",
         });
@@ -30,7 +31,7 @@ class AudioYoutube {
         return this.resource;
     }
 
-    stop_func() {
+    async stop_func() {
         if (this.stopped) {
             return;
         }
@@ -67,9 +68,12 @@ class PlayerManager {
 
         this.main_player.on("stateChange", this.on_main_state_change)
         this.interrupt_player.on("stateChange", this.on_interrupt_state_change)
+
+        this.main_player.on("error", console.log)
+        this.interrupt_player.on("error", console.log)
     }
 
-    try_to_connect() {
+    async try_to_connect() {
         this.connection = joinVoiceChannel({
             channelId: this.channelId,
             guildId: this.guild.id,
@@ -77,29 +81,30 @@ class PlayerManager {
         });
     }
 
-    try_to_disconnect() {
+    async try_to_disconnect() {
         if (!this.main_playing && !this.interrupt_playing) {
             this.connection.disconnect();
         }
     }
 
-    play(audio, channelId) {
+    async play(audio, channelId) {
         this.channelId = channelId
         this.try_to_connect();
         if (!this.main_playing) {
             this.main_audio = audio
-            let resource = this.main_audio.start_func()
+            let resource = await this.main_audio.start_func()
             this.main_player.play(resource)
             this.main_playing = true;
             if (!this.interrupt_playing) {
                 this.connection.subscribe(this.main_player);   
             }
         } else {
+            this.repeat = false;
             this.queue.push(audio)
         }
     } 
 
-    interrupt_play(audio, channelId) {
+    async interrupt_play(audio, channelId) {
         this.channelId = channelId
         this.try_to_connect();
         if (this.interrupt_playing) {
@@ -108,18 +113,20 @@ class PlayerManager {
         } else {
             this.interrupt_playing = true;
             this.interrupt_audio = audio;
-            let resource = this.interrupt_audio.start_func();
+            let resource = await this.interrupt_audio.start_func();
             this.interrupt_player.play(resource);
             this.connection.subscribe(this.interrupt_player);
         }
     }
 
-    stop() {
+    async stop() {
+        this.repeat = false;
         this.queue = []
         this.skip()
     }
 
-    skip() {
+    async skip() {
+        this.repeat = false;
         if (this.main_playing) {
             this.main_player.stop()
         }
@@ -128,17 +135,17 @@ class PlayerManager {
         }
     }
 
-    set_repeat(status) {
+    async set_repeat(status) {
         this.repeat = status 
     }
 
-    get_repeat() {
+    async get_repeat() {
         return this.repeat
     }
 
-    on_main_state_change(old_state, new_state) {
+    async on_main_state_change(old_state, new_state) {
         if (new_state.status == AudioPlayerStatus.Idle) {
-            this.main_audio.stop_func();
+            await this.main_audio.stop_func();
             if (this.repeat) {
                 let resource = this.main_audio.start_func()
                 this.main_player.play(resource)
@@ -155,9 +162,9 @@ class PlayerManager {
         }
     }
 
-    on_interrupt_state_change(old_state, new_state) {
+    async on_interrupt_state_change(old_state, new_state) {
         if (new_state.status == AudioPlayerStatus.Idle) {
-            this.interrupt_audio.stop_func();
+            await this.interrupt_audio.stop_func();
             if (this.interrupt_want_to_play) {
                 this.interrupt_audio = this.interrupt_want_to_play;
                 this.interrupt_want_to_play = null;

@@ -353,7 +353,8 @@ async function handleCommand(args, message) {
             let repeat_status = player_managers[message.channel.guildId].get_repeat();
             player_managers[message.channel.guildId].set_repeat(!repeat_status)
             message.channel.send(`repeating: ${!repeat_status}`)
-
+            break;
+            
         case "stop":
             player_managers[message.channel.guildId].stop()
             break
