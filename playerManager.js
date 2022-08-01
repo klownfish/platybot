@@ -60,6 +60,7 @@ class PlayerManager {
         this.interrupt_want_to_play = null;
         this.main_player = createAudioPlayer();
         this.interrupt_player = createAudioPlayer();
+        this.repeat = false;
 
         this.on_interrupt_state_change = this.on_interrupt_state_change.bind(this);
         this.on_main_state_change = this.on_main_state_change.bind(this)
@@ -127,9 +128,22 @@ class PlayerManager {
         }
     }
 
+    set_repeat(status) {
+        this.repeat = status 
+    }
+
+    get_repeat() {
+        return this.repeat
+    }
+
     on_main_state_change(old_state, new_state) {
         if (new_state.status == AudioPlayerStatus.Idle) {
             this.main_audio.stop_func();
+            if (this.repeat) {
+                let resource = this.main_audio.start_func()
+                this.main_player.play(resource)
+                return;
+            }
             this.main_audio = this.queue.shift()
             if (this.main_audio != null) {
                 let resource = this.main_audio.start_func()

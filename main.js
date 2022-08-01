@@ -14,6 +14,7 @@ const ytdl = require("discord-ytdl-core");
 const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube } = require('./playerManager.js');
 const OpenAI = require('openai-nodejs');
+const yts = require( 'yt-search' )
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
@@ -191,7 +192,7 @@ async function handleMessage(message) {
             prompt += "Platybot: "
             let response = await ai_client.complete(prompt, {
                 max_tokens: 100,
-                temperature: 0.6,
+                temperature: 0.3,
                 n: 1,
                 stop: ["\n"]
             })
@@ -336,18 +337,23 @@ async function handleCommand(args, message) {
                 } else {
                     link = args[1];
                 }
-                if (!ytdl.validateURL(link)) {
-                    message.channel.send("invalid link");
-                    return;
+                if (!ytdl.validateURL(link)) {                    
+                    let search = await yts.search(args.slice(1).join(""))
+                    link = search.videos[0].url
                 }
                 let audio = new AudioYoutube(link)
                 player_managers[message.channel.guildId].play(audio, channel.id)
+                message.channel.send(`playing ${link}`)
             } else {
                 message.channel.send("not in a voice channel")
             }
             break;
-            
-            
+        
+        case "repeat":
+            let repeat_status = player_managers[message.channel.guildId].get_repeat();
+            player_managers[message.channel.guildId].set_repeat(!repeat_status)
+            message.channel.send(`repeating: ${!repeat_status}`)
+
         case "stop":
             player_managers[message.channel.guildId].stop()
             break
