@@ -22,7 +22,7 @@ const THEME_CACHE = "./user_themes.json"
 const PLAY_THEME_FOR = 15;
 const AI_COST = 30
 const AI_MAX_DEBT = 60
-const AI_HISTORY = 4
+const AI_HISTORY = 0
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
