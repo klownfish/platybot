@@ -245,6 +245,9 @@ async function handleMessage(message) {
                 ago_text += `${seconds} seconds`
             }
             message.channel.send("gnosticism was last mentioned " + ago_text + " ago!")
+        } else 
+        if (message.content.toLowerCase().includes("byo") && Math.random() <= 0.01) {
+            message.channel.send(`https://cdn.discordapp.com/attachments/863478668692029440/1003935541152190474/trim.18401F40-98E8-49F7-A258-1FEA21593076.mov`)
         }
     }
     catch (e) {
