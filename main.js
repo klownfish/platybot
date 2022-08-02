@@ -362,6 +362,10 @@ async function handleCommand(args, message) {
         case "skip":
             player_managers[message.channel.guildId].skip()
             break;
+
+        case "guildicon":
+            message.channel.send(message.channel.guild.iconURL())
+            break;
         
         case "clone":
             message.delete()
@@ -503,16 +507,20 @@ async function handleCommand(args, message) {
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
             const members = await guild.members.fetch() // returns Collection
-            try {
-                fs.mkdirSync("./" + message.channel.guildId)
-            } catch{}
+            // try {
+            //     fs.mkdirSync("./" + message.channel.guildId)
+            // } catch{}
             for (let member of members) {
-                let url = member[1].displayAvatarURL()
-                var request = require("request");
-                request(url).pipe(fs.createWriteStream(`./${message.channel.guildId}/${member[1].displayName}.webp`))
+                if (member[1].nickname == "root's bitch boy") {
+                    console.log("found user", member[1].nickname)
+                    member[1].setNickname("")
+                } 
+                // let url = member[1].displayAvatarURL()
+                // var request = require("request");
+                // request(url).pipe(fs.createWriteStream(`./${message.channel.guildId}/${member[1].displayName}.webp`))
             }
             break
-        
+
 
         default:
             let maybe_emoji = generateEmojiText(args[0]);
