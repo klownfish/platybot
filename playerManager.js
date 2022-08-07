@@ -1,5 +1,6 @@
 "use strict";
 
+const axios = require('axios')
 const ytdl = require('ytdl-core-discord');
 
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, PlayerSubscription, AudioPlayer, AudioPlayerStatus } = require('@discordjs/voice');
@@ -45,6 +46,22 @@ class AudioYoutube {
             this.resource.audioPlayer?.stop();
             this.stream.destroy()
         }
+    }
+}
+
+class AudioListenMoe {
+    constructor() {
+
+    }
+    async start_func() {
+        let response = await axios.get("https://listen.moe/opus", { responseType: 'stream'} )
+        this.stream = response.data
+        this.resource = createAudioResource(this.stream);
+        return this.resource;
+    }
+
+    async stop_func() {
+        this.stream.destroy();
     }
 }
 
@@ -182,5 +199,6 @@ class PlayerManager {
 
 module.exports = {
     "AudioYoutube": AudioYoutube,
-    "PlayerManager": PlayerManager
+    "PlayerManager": PlayerManager,
+    "AudioListenMoe": AudioListenMoe,
 };

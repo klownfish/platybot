@@ -12,7 +12,7 @@ const Rocket = require("./rocket.js")
 const EelSlapper = require('./eel_slap.js');
 const ytdl = require("discord-ytdl-core");
 const Deleter = require('./deleter.js');
-const { PlayerManager, AudioYoutube } = require('./playerManager.js');
+const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager.js');
 const OpenAI = require('openai-nodejs');
 const yts = require( 'yt-search' )
 
@@ -323,7 +323,7 @@ async function handleCommand(args, message) {
             }
             break;
 
-        case "play":
+        case "play": {
             let channel = message.member?.voice.channel
             if (!(message.channel.guildId in player_managers)) {
                 player_managers[message.channel.guildId] = new PlayerManager(message.channel.guild);
@@ -351,6 +351,23 @@ async function handleCommand(args, message) {
                 message.channel.send("not in a voice channel")
             }
             break;
+        }
+        
+        case "moeradio": {
+            let channel = message.member?.voice.channel
+            if (!(message.channel.guildId in player_managers)) {
+                player_managers[message.channel.guildId] = new PlayerManager(message.channel.guild);
+            }
+
+            if (channel) {
+                let audio = new AudioListenMoe()
+                player_managers[message.channel.guildId].play(audio, channel.id)
+                message.channel.send(`playing listen.moe`)
+            } else {
+                message.channel.send("not in a voice channel")
+            }
+        }
+        break;
         
         case "repeat":
             let repeat_status = player_managers[message.channel.guildId].get_repeat();
