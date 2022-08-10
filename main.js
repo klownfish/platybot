@@ -20,8 +20,8 @@ const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
 const THEME_CACHE = "./user_themes.json"
 const PLAY_THEME_FOR = 15;
-const AI_COST = 30
-const AI_MAX_DEBT = 60
+const AI_COST = 20
+const AI_MAX_DEBT = 80
 const AI_HISTORY = 0
 
 const DEFAULT_NAME = "platybot"
@@ -166,7 +166,7 @@ async function handleMessage(message) {
             if (user_prompt.length > 500) {
                 return
             }
-            let user_obj = ai_requests[message.author.snowflake]
+            let user_obj = ai_requests[message.author.id]
             if (user_obj) {
                 let delay = +Date.now() / 1000 - user_obj.last_prompt 
                 user_obj.debt = Math.max(user_obj.debt - delay, 0)
@@ -175,36 +175,25 @@ async function handleMessage(message) {
                     return
                 }
             } else {
-                ai_requests[message.author.snowflake] = {debt:0, last_prompt:0}
-                user_obj = ai_requests[message.author.snowflake];
+                ai_requests[message.author.id] = {debt:0, last_prompt:0}
+                user_obj = ai_requests[message.author.id];
             }
 
-            let prompt = `platybot is a chatbot that enthusiatically answers questions with friendly responses:\n`
-            if (last_ai_requests.length > AI_HISTORY) {
-                last_ai_requests.shift()
-                last_ai_requests.shift()
-            } 
-            
-            last_ai_requests.push("Human: " + user_prompt)
-            for (let v of last_ai_requests) {
-                prompt += v + "\n"
-            }
-            prompt += "Platybot: "
+            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nHuman: ` + message.content + "\n"
             let response = await ai_client.complete(prompt, {
                 max_tokens: 100,
                 temperature: 0.3,
                 n: 1,
-                stop: ["\n"]
+                stop: ["Human: "]
             })
             
-            console.log(prompt)
-            console.log(response)
+
             user_obj.last_prompt = +Date.now() / 1000
             user_obj.debt += AI_COST
+            console.log(prompt)
+            console.log(response)
             console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
             message.channel.send(response.choices[0].text.trim())
-
-            last_ai_requests.push("Platybot: " + response.choices[0].text.trim())
         }
         if (message.content.includes("platypus")) {
             let platy_count = message.content.match(/platy/g).length
@@ -368,7 +357,7 @@ async function handleCommand(args, message) {
             }
         }
         break;
-        
+
         case "repeat":
             let repeat_status = player_managers[message.channel.guildId].get_repeat();
             player_managers[message.channel.guildId].set_repeat(!repeat_status)

@@ -76,8 +76,8 @@ class PlayerManager {
         this.main_audio = null;
         this.interrupt_audio = null;
         this.interrupt_want_to_play = null;
-        this.main_player = createAudioPlayer();
-        this.interrupt_player = createAudioPlayer();
+        this.main_player = createAudioPlayer({behaviors: {maxMissedFrames: 100}});
+        this.interrupt_player = createAudioPlayer({behaviors: {maxMissedFrames: 100}});
         this.repeat = false;
 
         this.on_interrupt_state_change = this.on_interrupt_state_change.bind(this);
