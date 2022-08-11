@@ -179,14 +179,13 @@ async function handleMessage(message) {
                 user_obj = ai_requests[message.author.id];
             }
 
-            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nHuman: ` + message.content + "\n"
+            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: ` + message.content + "\nPlatybot: "
             let response = await ai_client.complete(prompt, {
                 max_tokens: 100,
                 temperature: 0.3,
                 n: 1,
                 stop: ["Human: "]
             })
-            
 
             user_obj.last_prompt = +Date.now() / 1000
             user_obj.debt += AI_COST
