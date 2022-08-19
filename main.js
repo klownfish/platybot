@@ -182,7 +182,7 @@ async function handleMessage(message) {
             let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: ` + message.content + "\nPlatybot: "
             let response = await ai_client.complete(prompt, {
                 max_tokens: 100,
-                temperature: 0.3,
+                temperature: 0.9,
                 n: 1,
                 stop: ["Human: "]
             })
