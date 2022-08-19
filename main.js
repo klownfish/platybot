@@ -179,12 +179,13 @@ async function handleMessage(message) {
                 user_obj = ai_requests[message.author.id];
             }
 
-            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: ` + message.content + "\nPlatybot: "
+            // let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: ` + message.content + "\nPlatybot: "
+            let prompt = message.content
             let response = await ai_client.complete(prompt, {
                 max_tokens: 100,
-                temperature: 0.9,
+                temperature: 0.8,
                 n: 1,
-                stop: ["Human: "]
+                //stop: ["\n"]
             })
 
             user_obj.last_prompt = +Date.now() / 1000
@@ -195,6 +196,7 @@ async function handleMessage(message) {
             message.channel.send(response.choices[0].text.trim())
         }
         if (message.content.includes("platypus")) {
+            return
             let platy_count = message.content.match(/platy/g).length
             let offset = Math.floor(Math.random() * platys.length)
             let text = ""
