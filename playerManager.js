@@ -1,7 +1,7 @@
 "use strict";
 
 const axios = require('axios')
-const ytdl = require('ytdl-core-discord');
+const ytdl = require('youtube-dl-exec')
 
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, PlayerSubscription, AudioPlayer, AudioPlayerStatus } = require('@discordjs/voice');
 
@@ -21,15 +21,24 @@ class AudioYoutube {
     }
 
     async start_func() {
-        this.stream = await ytdl(this.link, {
-            filter: "audioonly",
-            fmt: "mp3",
-        });
+        const process = ytdl.exec(
+            this.link,
+            {
+                o: '-',
+                q: '',
+                f: 'bestaudio[acodec=opus]',
+                r: '100K',
+            },
+            { stdio: ['ignore', 'pipe', 'ignore'] },
+        );
+        this.stream = process.stdout;
+        console.log(typeof(this.stream))
+        
         this.resource = createAudioResource(this.stream);
         if (this.duration) {
             setTimeout(this.timeout_func, this.duration * 1000)
         }
-        return this.resource;
+        return this.resource
     }
 
     async stop_func() {

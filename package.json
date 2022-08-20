@@ -3,16 +3,15 @@
     "version": "1.0.0",
     "dependencies": {
         "@discordjs/voice": "latest",
+        "discord.js": "latest",
         "axios": "latest",
         "canvas": "latest",
-        "discord-ytdl-core": "^5.0.4",
-        "discord.js": "latest",
         "gif.node": "latest",
         "openai-nodejs": "^1.1.0",
         "package.json": "latest",
         "request": "latest",
         "yt-search": "^2.10.3",
-        "ytdl-core": "latest",
-        "ytdl-core-discord": "latest"
+        "youtube-dl-exec": "latest",
+        "ytdl-core": "latest"
     }
 }
