@@ -20,10 +20,13 @@ const child_process = require('child_process');
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
 const THEME_CACHE = "./user_themes.json"
-const PLAY_THEME_FOR = 15;
+const PLAY_THEME_FOR = 7;
+
 const AI_COST = 20
 const AI_MAX_DEBT = 80
-const AI_HISTORY = 0
+
+const IMAGE_COST = 60
+const IMAGE_MAX_DEBT = 60
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -139,7 +142,7 @@ let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 let player_managers = {}
 let last_gnosti = +Date.now()
 let ai_requests = {};
-let last_ai_requests = []
+let image_requests = {};
 
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
@@ -514,31 +517,46 @@ async function handleCommand(args, message) {
             break;
 
         case "imagine":
+            let user_obj = image_requests[message.author.id]
+            console.log(message.author.id)
+            if (user_obj) {
+                let delay = +Date.now() / 1000 - user_obj.last_prompt 
+                user_obj.debt = Math.max(user_obj.debt - delay, 0)
+                if (user_obj.debt > IMAGE_MAX_DEBT) {
+                    message.channel.send(`Please wait ${user_obj.debt - IMAGE_MAX_DEBT} seconds. This thing costs actual money lmao`)
+                    return
+                }
+                user_obj.debt += IMAGE_COST
+                user_obj.last_prompt = +Date.now() / 1000
+            } else {
+                image_requests[message.author.id] = {debt:IMAGE_COST, last_prompt:+Date.now() / 1000}
+                user_obj = image_requests[message.author.id];
+            }
             process.env["STABILITY_KEY"] = keys.stabilityKey
             let prompt = args.slice(1).join(" ")
             let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
             console.log(`image prompt: ${prompt}`)
-            stability.stdout.once("readable", async ()=> {
-                if (stability.stdout.readableLength == 0) {
-                    await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
-                    return;
-                }
-                await message.channel.send("prompt: " + prompt)
-                await message.channel.send({
-                    files: 
-                    [
-                        {
-                            attachment: stability.stdout,
-                            name: "imagine.png"
-                        }
-                    ],
-                });
-                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
-            })
+            // stability.stdout.once("readable", async ()=> {
+            //     if (stability.stdout.readableLength == 0) {
+            //         await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
+            //         return;
+            //     }
+            //     await message.channel.send("prompt: " + prompt)
+            //     await message.channel.send({
+            //         files: 
+            //         [
+            //             {
+            //                 attachment: stability.stdout,
+            //                 name: "imagine.png"
+            //             }
+            //         ],
+            //     });
+            //     await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+            // })
 
-            stability.on("error", async ()=> {
-                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
-            })
+            // stability.on("error", async ()=> {
+            //     await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+            // })
 
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
