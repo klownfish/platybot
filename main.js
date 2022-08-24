@@ -26,7 +26,7 @@ const AI_COST = 20
 const AI_MAX_DEBT = 80
 
 const IMAGE_COST = 60
-const IMAGE_MAX_DEBT = 60
+const IMAGE_MAX_DEBT = 0
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
