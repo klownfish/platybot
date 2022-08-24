@@ -15,6 +15,7 @@ const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager.js');
 const OpenAI = require('openai-nodejs');
 const yts = require( 'yt-search' )
+const child_process = require('child_process');
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
@@ -512,7 +513,33 @@ async function handleCommand(args, message) {
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
             break;
 
-        
+        case "imagine":
+            process.env["STABILITY_KEY"] = keys.stabilityKey
+            let prompt = args.slice(1).join(" ")
+            let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
+            console.log(`image prompt: ${prompt}`)
+            stability.stdout.once("readable", async ()=> {
+                if (stability.stdout.readableLength == 0) {
+                    await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
+                    return;
+                }
+                await message.channel.send("prompt: " + prompt)
+                await message.channel.send({
+                    files: 
+                    [
+                        {
+                            attachment: stability.stdout,
+                            name: "imagine.png"
+                        }
+                    ],
+                });
+                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+            })
+
+            stability.on("error", async ()=> {
+                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+            })
+
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
             const members = await guild.members.fetch() // returns Collection

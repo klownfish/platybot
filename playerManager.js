@@ -18,10 +18,11 @@ class AudioYoutube {
         this.duration = duration
         this.stopped = false;
         this.timeout_func = this.timeout_func.bind(this)
+        this.process
     }
 
     async start_func() {
-        const process = ytdl.exec(
+        this.process = ytdl.exec(
             this.link,
             {
                 o: '-',
@@ -31,8 +32,7 @@ class AudioYoutube {
             },
             { stdio: ['ignore', 'pipe', 'ignore'] },
         );
-        this.stream = process.stdout;
-        console.log(typeof(this.stream))
+        this.stream = this.process.stdout;
         
         this.resource = createAudioResource(this.stream);
         if (this.duration) {
@@ -47,6 +47,7 @@ class AudioYoutube {
         }
         this.stopped = true;
         this.stream.destroy();
+        this.process.cancel()
     }
 
     timeout_func() {
@@ -54,6 +55,7 @@ class AudioYoutube {
             this.stopped = true;
             this.resource.audioPlayer?.stop();
             this.stream.destroy()
+            this.process.cancel()
         }
     }
 }
