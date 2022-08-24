@@ -536,27 +536,27 @@ async function handleCommand(args, message) {
             let prompt = args.slice(1).join(" ")
             let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
             console.log(`image prompt: ${prompt}`)
-            // stability.stdout.once("readable", async ()=> {
-            //     if (stability.stdout.readableLength == 0) {
-            //         await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
-            //         return;
-            //     }
-            //     await message.channel.send("prompt: " + prompt)
-            //     await message.channel.send({
-            //         files: 
-            //         [
-            //             {
-            //                 attachment: stability.stdout,
-            //                 name: "imagine.png"
-            //             }
-            //         ],
-            //     });
-            //     await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
-            // })
+            stability.stdout.once("readable", async ()=> {
+                if (stability.stdout.readableLength == 0) {
+                    await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
+                    return;
+                }
+                await message.channel.send("prompt: " + prompt)
+                await message.channel.send({
+                    files: 
+                    [
+                        {
+                            attachment: stability.stdout,
+                            name: "imagine.png"
+                        }
+                    ],
+                });
+                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+            })
 
-            // stability.on("error", async ()=> {
-            //     await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
-            // })
+            stability.on("error", async ()=> {
+                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+            })
 
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
