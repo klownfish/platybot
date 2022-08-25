@@ -25,8 +25,8 @@ const PLAY_THEME_FOR = 7;
 const AI_COST = 20
 const AI_MAX_DEBT = 80
 
-const IMAGE_COST = 100
-const IMAGE_MAX_DEBT = 70
+const IMAGE_COST = 150
+const IMAGE_MAX_DEBT = 190
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -541,8 +541,7 @@ async function handleCommand(args, message) {
                     await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
                     return;
                 }
-                await message.channel.send("prompt: " + prompt)
-                await message.channel.send({
+                await message.reply({
                     files: 
                     [
                         {
@@ -551,11 +550,10 @@ async function handleCommand(args, message) {
                         }
                     ],
                 });
-                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
             })
 
             stability.on("error", async ()=> {
-                await message.channel.send("https://beta.dreamstudio.ai/prompt-guide")
+                await message.reply("https://beta.dreamstudio.ai/prompt-guide")
             })
 
         case "secret_command_lol":
