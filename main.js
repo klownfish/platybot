@@ -26,7 +26,7 @@ const AI_COST = 20
 const AI_MAX_DEBT = 80
 
 const IMAGE_COST = 60
-const IMAGE_MAX_DEBT = 0
+const IMAGE_MAX_DEBT = 60
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -568,7 +568,7 @@ async function handleCommand(args, message) {
                 if (member[1].nickname == "root's bitch boy") {
                     console.log("found user", member[1].nickname)
                     member[1].setNickname("")
-                } 
+                }
                 // let url = member[1].displayAvatarURL()
                 // var request = require("request");
                 // request(url).pipe(fs.createWriteStream(`./${message.channel.guildId}/${member[1].displayName}.webp`))
