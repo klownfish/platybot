@@ -25,8 +25,8 @@ const PLAY_THEME_FOR = 7;
 const AI_COST = 20
 const AI_MAX_DEBT = 80
 
-const IMAGE_COST = 300
-const IMAGE_MAX_DEBT = 0
+const IMAGE_COOLDOWN = 240
+const SERVER_IMAGE_COOLDOWN = 60
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -142,7 +142,9 @@ let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 let player_managers = {}
 let last_gnosti = +Date.now()
 let ai_requests = {};
+
 let image_requests = {};
+let server_image_requests = {};
 
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
@@ -518,29 +520,41 @@ async function handleCommand(args, message) {
 
         case "imagine":
             let user_obj = image_requests[message.author.id]
-            console.log(message.author.id)
-            if (user_obj) {
-                let delay = +Date.now() / 1000 - user_obj.last_prompt 
-                user_obj.debt = Math.max(user_obj.debt - delay, 0)
-                if (user_obj.debt > IMAGE_MAX_DEBT) {
-                    message.channel.send(`Please wait ${user_obj.debt - IMAGE_MAX_DEBT} seconds. This thing costs actual money lmao`)
-                    return
-                }
-            } else {
-                image_requests[message.author.id] = {debt:0, last_prompt:0}
+            let server_obj = server_image_requests[message.channel.guildId]
+            if (user_obj == null) {
+                image_requests[message.author.id] = {}
                 user_obj = image_requests[message.author.id];
+                user_obj.last_prompt = 0;
             }
+            if (server_obj == null) {
+                server_image_requests[message.channel.guildId] = {}
+                server_obj = server_image_requests[message.channel.guildId]
+                server_obj.last_prompt = 0;
+            }
+            let user_delta = (+Date.now() - user_obj.last_prompt) / 1000;
+            let server_delta = (+Date.now() - user_obj.last_prompt) / 1000;
+
+            if (user_delta < IMAGE_COOLDOWN) {
+                message.reply(`please wait ${IMAGE_COOLDOWN - user_delta}s (personal cooldown)`)
+                return
+            }
+
+            if (user_delta < SERVER_IMAGE_COOLDOWN) {
+                message.reply(`please wait ${IMAGE_COOLDOWN - server_delta}s (server cooldown)`)
+                return
+            }
+
             process.env["STABILITY_KEY"] = keys.stabilityKey
             let prompt = args.slice(1).join(" ")
             let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
             console.log(`image prompt: ${prompt}`)
             stability.stdout.once("readable", async ()=> {
                 if (stability.stdout.readableLength == 0) {
-                    await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
+                    await message.reply(`something went wrong. your prompt might have been "immoral"`)
                     return;
                 }
-                user_obj.debt += IMAGE_COST
-                user_obj.last_prompt = +Date.now() / 1000
+                server_obj.last_prompt = +Date.now();
+                user_obj.last_prompt = +Date.now();
                 await message.reply({
                     files: 
                     [
@@ -552,9 +566,6 @@ async function handleCommand(args, message) {
                 });
             })
 
-            stability.on("error", async ()=> {
-                await message.reply("https://beta.dreamstudio.ai/prompt-guide")
-            })
 
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
