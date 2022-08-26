@@ -26,7 +26,7 @@ const AI_COST = 20
 const AI_MAX_DEBT = 80
 
 const IMAGE_COST = 300
-const IMAGE_MAX_DEBT = 190
+const IMAGE_MAX_DEBT = 0
 
 const DEFAULT_NAME = "platybot"
 const DEFAULT_PFP = "./avatar.jpeg"
@@ -526,10 +526,8 @@ async function handleCommand(args, message) {
                     message.channel.send(`Please wait ${user_obj.debt - IMAGE_MAX_DEBT} seconds. This thing costs actual money lmao`)
                     return
                 }
-                user_obj.debt += IMAGE_COST
-                user_obj.last_prompt = +Date.now() / 1000
             } else {
-                image_requests[message.author.id] = {debt:IMAGE_COST, last_prompt:+Date.now() / 1000}
+                image_requests[message.author.id] = {debt:0, last_prompt:0}
                 user_obj = image_requests[message.author.id];
             }
             process.env["STABILITY_KEY"] = keys.stabilityKey
@@ -541,6 +539,8 @@ async function handleCommand(args, message) {
                     await message.channel.send(`something went wrong. your prompt might have been "immoral"`)
                     return;
                 }
+                user_obj.debt += IMAGE_COST
+                user_obj.last_prompt = +Date.now() / 1000
                 await message.reply({
                     files: 
                     [
