@@ -167,7 +167,7 @@ async function handleMessage(message) {
             let args = message.content.substring(PREFIX.length).split(/[ \n]/g);
             await handleCommand(args, message);
         } else
-        if (message.content.toLowerCase().includes("platybot")) {
+        if (message.content.toLowerCase().includes("platybot") || message.mentions.has(client.user)) {
             let user_prompt = message.content.trim()
             if (user_prompt.length > 500) {
                 return
@@ -199,7 +199,7 @@ async function handleMessage(message) {
             console.log(response)
             console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
             message.channel.send(response.choices[0].text.trim())
-        }
+        } else
         if (message.content.includes("platypus")) {
             return;
             let platy_count = message.content.match(/platy/g).length
