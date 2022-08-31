@@ -14,7 +14,7 @@ const ytdl = require("ytdl-core");
 const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager.js');
 const OpenAI = require('openai-nodejs');
-const yts = require( 'yt-search' )
+const yts = require( 'yt-search')
 const child_process = require('child_process');
 
 const PREFIX = "p ";
@@ -92,8 +92,8 @@ Platybot prefix: "p "
 \t - p rocket 
 \t\t *  sends information about the next upcoming rocket lanunch
 
-\t - platypus
-\t\t * platy platy platy
+\t - p imagine [prompt]
+\t\t * generates an image from the prompt
 \`\`\`
 `
 
@@ -198,7 +198,7 @@ async function handleMessage(message) {
             console.log(prompt)
             console.log(response)
             console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
-            message.channel.send(response.choices[0].text.trim())
+            message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]").replace(/Platybot: /g, ""))
         } else
         if (message.content.includes("platypus")) {
             return;
