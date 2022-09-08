@@ -51,6 +51,11 @@ const platys = [
     "https://i.imgur.com/17TMLUE.png",
 ]
 
+const premium_servers = [
+    "827312525380026368", //cyberia
+    "239483833353895936"
+]
+
 const help_text = 
 `
 \`\`\`
@@ -381,7 +386,7 @@ async function handleCommand(args, message) {
         case "guildicon":
             message.channel.send(message.channel.guild.iconURL())
             break;
-        
+
         case "clone":
             message.delete()
             let doppelganger = message.mentions.members.first()
@@ -533,13 +538,14 @@ async function handleCommand(args, message) {
             }
             let user_delta = (+Date.now() - user_obj.last_prompt) / 1000;
             let server_delta = (+Date.now() - user_obj.last_prompt) / 1000;
-
-            if (user_delta < IMAGE_COOLDOWN) {
+            console
+            let premium = premium_servers.includes(message.guildId);
+            if (user_delta < IMAGE_COOLDOWN && !premium) {
                 message.reply(`please wait ${IMAGE_COOLDOWN - user_delta}s (personal cooldown)`)
                 return
             }
 
-            if (user_delta < SERVER_IMAGE_COOLDOWN) {
+            if (user_delta < SERVER_IMAGE_COOLDOWN && !premium) {
                 message.reply(`please wait ${IMAGE_COOLDOWN - server_delta}s (server cooldown)`)
                 return
             }
