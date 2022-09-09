@@ -545,8 +545,8 @@ async function handleCommand(args, message) {
                 return
             }
 
-            if (user_delta < SERVER_IMAGE_COOLDOWN && !premium) {
-                message.reply(`please wait ${IMAGE_COOLDOWN - server_delta}s (server cooldown)`)
+            if (server_delta < SERVER_IMAGE_COOLDOWN && !premium) {
+                message.reply(`please wait ${SERVER_IMAGE_COOLDOWN - server_delta}s (server cooldown)`)
                 return
             }
 
@@ -554,24 +554,30 @@ async function handleCommand(args, message) {
             let prompt = args.slice(1).join(" ")
             let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
             console.log(`image prompt: ${prompt}`)
-            stability.stdout.once("readable", async ()=> {
-                if (stability.stdout.readableLength == 0) {
-                    await message.reply(`something went wrong. your prompt might have been "immoral"`)
-                    return;
+            let buf = []
+            stability.stdout.on("data", (chunk) => {
+                buf.push(...chunk)
+            })
+            stability.stdout.on("end", async () => {
+                if (buf.length == 0) {
+                    await message.reply(`Something went wrong. Your prompt might have been "immoral"`)
+                    return
                 }
                 server_obj.last_prompt = +Date.now();
                 user_obj.last_prompt = +Date.now();
+                let bin_buf = Buffer.from(buf)
+                let filename = `${encodeURI(prompt.replace(/ /g,"_"))}_${+Date.now()}.png`
                 await message.reply({
                     files: 
                     [
                         {
-                            attachment: stability.stdout,
-                            name: "imagine.png"
+                            attachment: bin_buf,
+                            name: filename
                         }
                     ],
                 });
+                fs.writeFileSync(`imagine_archive/${filename}`, bin_buf)
             })
-
 
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
