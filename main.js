@@ -16,6 +16,7 @@ const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager
 const OpenAI = require('openai-nodejs');
 const yts = require( 'yt-search')
 const child_process = require('child_process');
+const axios = require('axios')
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
@@ -190,10 +191,10 @@ async function handleMessage(message) {
                 user_obj = ai_requests[message.author.id];
             }
 
-            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: ` + message.content + "\nPlatybot: "
+            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: What's you favourite movie?\nPlatybot: I love bladerunner!\nHuman: ` + message.content + "\nPlatybot: "
             let response = await ai_client.complete(prompt, {
-                max_tokens: 100,
-                temperature: 0.9,
+                max_tokens: 200,
+                temperature: 0.8,
                 n: 1,
                 stop: ["Human: "]
             })
@@ -523,7 +524,24 @@ async function handleCommand(args, message) {
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
             break;
 
-        case "imagine":
+        case "imagine": {
+            let base = `https://api.computerender.com/generate/`
+            let prompt = args.slice(1).join(" ")
+            let link = base + encodeURIComponent(prompt) + ".png";
+            let response = await axios.get(link, {responseType: "arraybuffer"});
+            await message.reply({
+                files: 
+                [
+                    {
+                        attachment: response.data,
+                        name: "imagine.png"
+                    }
+                ],
+            });
+            break;   
+        }
+
+        case "imagine_old":
             let user_obj = image_requests[message.author.id]
             let server_obj = server_image_requests[message.channel.guildId]
             if (user_obj == null) {
@@ -551,7 +569,7 @@ async function handleCommand(args, message) {
             }
 
             process.env["STABILITY_KEY"] = keys.stabilityKey
-            let prompt = args.slice(1).join(" ")
+            
             let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
             console.log(`image prompt: ${prompt}`)
             let buf = []
