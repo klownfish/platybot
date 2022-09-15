@@ -527,7 +527,8 @@ async function handleCommand(args, message) {
         case "imagine": {
             let base = `https://api.computerender.com/generate/`
             let prompt = args.slice(1).join(" ")
-            let link = base + encodeURIComponent(prompt) + ".png";
+            let seed = `?seed=${Math.round(Math.random() * 9999)}`
+            let link = base + encodeURIComponent(prompt) + ".png" + seed;
             let response = await axios.get(link, {responseType: "arraybuffer"});
             await message.reply({
                 files: 
