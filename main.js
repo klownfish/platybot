@@ -180,7 +180,7 @@ async function handleMessage(message) {
             }
             let user_obj = ai_requests[message.author.id]
             if (user_obj) {
-                let delay = +Date.now() / 1000 - user_obj.last_prompt 
+                let delay = +Date.now() / 1000 - user_obj.last_prompt       
                 user_obj.debt = Math.max(user_obj.debt - delay, 0)
                 if (user_obj.debt > AI_MAX_DEBT) {
                     message.channel.send(`Please wait ${user_obj.debt - AI_MAX_DEBT} seconds. This thing costs actual money lmao`)
@@ -522,27 +522,35 @@ async function handleCommand(args, message) {
         
         case "rules":
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
-            break;
+           break;
 
-        case "imagine": {
+        case "imagine": 
+        case "imagine_seeded": {
+            let seed;
+            let prompt;
             let base = `https://api.computerender.com/generate/`
-            let prompt = args.slice(1).join(" ")
-            let seed = `?seed=${Math.round(Math.random() * 9999)}`
-            let link = base + encodeURIComponent(prompt) + ".png" + seed;
+            if (args[0] == "imagine") {
+                seed = `${Math.floor(+Date.now() / 1000)}`
+                prompt = args.slice(1).join(" ")
+            } else {
+                seed = args[1];
+                prompt = args.slice(2).join(" ")
+            }
+            let link = base + encodeURIComponent(prompt) + ".png" + `?seed=${seed}`;
             let response = await axios.get(link, {responseType: "arraybuffer"});
             await message.reply({
                 files: 
                 [
                     {
                         attachment: response.data,
-                        name: "imagine.png"
+                        name: prompt.replace(/ /g, "_") + `_seed_${seed}.png`
                     }
                 ],
             });
-            break;   
+            break;
         }
 
-        case "imagine_old":
+        case "imagine_old": {
             let user_obj = image_requests[message.author.id]
             let server_obj = server_image_requests[message.channel.guildId]
             if (user_obj == null) {
@@ -597,6 +605,7 @@ async function handleCommand(args, message) {
                 });
                 fs.writeFileSync(`imagine_archive/${filename}`, bin_buf)
             })
+        }
 
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
