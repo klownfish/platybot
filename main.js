@@ -526,6 +526,16 @@ async function handleCommand(args, message) {
 
         case "imagine": 
         case "imagine_seeded": {
+            let last_generation = image_requests[message.author.id]
+            if (last_generation == null) {
+                last_generation = 0;
+            }
+
+            if (+Date.now() - last_generation < 10000) {
+                message.reply("10s cooldown for peter");
+                return
+            }
+            image_requests[message.author.id] = +Date.now();
             let seed;
             let prompt;
             let base = `https://api.computerender.com/generate/`
@@ -537,20 +547,25 @@ async function handleCommand(args, message) {
                 prompt = args.slice(2).join(" ")
             }
             let link = base + encodeURIComponent(prompt) + ".png" + `?seed=${seed}`;
-            let response = await axios.get(link, {responseType: "arraybuffer"});
-            await message.reply({
-                files: 
-                [
-                    {
-                        attachment: response.data,
-                        name: prompt.replace(/ /g, "_") + `_seed_${seed}.png`
-                    }
-                ],
-            });
+            try {
+                let response = await axios.get(link, {responseType: "arraybuffer"});
+                await message.reply({
+                    files: 
+                    [
+                        {
+                            attachment: response.data,
+                            name: prompt.replace(/ /g, "_") + `_seed_${seed}.png`
+                        }
+                    ],
+                });
+            } catch (err) {
+                console.log(err)
+            }
             break;
         }
 
         case "imagine_old": {
+            break;
             let user_obj = image_requests[message.author.id]
             let server_obj = server_image_requests[message.channel.guildId]
             if (user_obj == null) {
