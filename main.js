@@ -559,7 +559,11 @@ async function handleCommand(args, message) {
                     ],
                 });
             } catch (err) {
-                console.log(err)
+                if (err.code == 500) {
+                    message.reply("it borked <:basilbruh:860924777891495957> blame peter")
+                } else {
+                    message.reply("it borked <:basilbruh:860924777891495957> probably platybot's fault")
+                }
             }
             break;
         }
