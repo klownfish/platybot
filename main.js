@@ -17,6 +17,7 @@ const OpenAI = require('openai-nodejs');
 const yts = require( 'yt-search')
 const child_process = require('child_process');
 const axios = require('axios')
+const cheerio = require("cheerio")
 
 const PREFIX = "p ";
 const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
@@ -625,6 +626,15 @@ async function handleCommand(args, message) {
                 });
                 fs.writeFileSync(`imagine_archive/${filename}`, bin_buf)
             })
+        }
+
+        case "img": {
+            const bing_url = "https://www.bing.com/images/search?q=" + args.slice(1).join(" ")
+            let response = await axios.get(bing_url);
+            let doc = cheerio.load(response.data)
+            let url = JSON.parse(doc(".iusc")[0].attribs["m"]).murl
+            message.reply(url)
+            break;
         }
 
         case "secret_command_lol":
