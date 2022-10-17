@@ -18,11 +18,11 @@ const yts = require( 'yt-search')
 const child_process = require('child_process');
 const axios = require('axios')
 const cheerio = require("cheerio")
+const { ArgumentParser } = require('argparse');
 
 const PREFIX = "p ";
-const EMOJI_LINK = "https://raw.githubusercontent.com/Aevann1/Drama/frost/files/assets/images/emojis/"
 const THEME_CACHE = "./user_themes.json"
-const PLAY_THEME_FOR = 7;
+const PLAY_THEME_FOR = 10;
 
 const AI_COST = 20
 const AI_MAX_DEBT = 80
@@ -30,79 +30,18 @@ const AI_MAX_DEBT = 80
 const IMAGE_COOLDOWN = 240
 const SERVER_IMAGE_COOLDOWN = 60
 
-const DEFAULT_NAME = "platybot"
-const DEFAULT_PFP = "./avatar.jpeg"
-const platys = [
-    "https://i.imgur.com/Hr5GHEe.jpg",
-    "https://i.imgur.com/uWZMHNG.jpg",
-    "https://i.imgur.com/oRgG2uY.jpg",
-    "https://i.imgur.com/vZJ6UV5.jpg",
-    "https://i.imgur.com/jtEhW42.jpg",
-    "https://i.imgur.com/QuF1hRu.jpg",
-    "https://i.imgur.com/AXu0w6A.jpg",
-    "https://i.imgur.com/ZYnFl4e.jpg",
-    "https://i.imgur.com/tbukEeA.jpg",
-    "https://i.imgur.com/ip4OUVN.jpg",
-    "https://i.imgur.com/wgPBEoP.png",
-    "https://i.imgur.com/LInrdN5.png",
-    "https://i.imgur.com/hHe5z2j.png",
-    "https://i.imgur.com/KWEuUo9.png",
-    "https://i.imgur.com/0s9spDF.png",
-    "https://i.imgur.com/EXOKwO4.png",
-    "https://i.imgur.com/D0VK2dY.png",
-    "https://i.imgur.com/17TMLUE.png",
-]
+
+let parser = new ArgumentParser();
+let sub_parsers = parser.add_subparsers()
+let imagine_parser = sub_parsers.add_parser("imagine")
+imagine_parser.add_argument("prompt", {type: "str"})
+imagine_parser.add_argument("--seed", "-s", {type: "int"})
 
 const premium_servers = [
     "827312525380026368", //cyberia
-    "239483833353895936"
+    "239483833353895936" //swas
 ]
 
-const help_text = 
-`
-\`\`\`
-Platybot prefix: "p "
-
-\t - p help
-\t\t view this page
-
-\t - p [name]
-\t\t * tries to send an emoji. other commands take precedence
-
-\t - p platys
-\t\t * lists all platys
-
-\t - p marseys
-\t\t * lists all marseys
-
-\t - p emoji [name]
-\t\t * sends an emoji
-
-\t - p pat @[user]
-\t\t * pats the user
-
-\t - p marseytext [text]
-\t\t * writes the text using a marsey font
-
-\t - p help marseytext
-\t\t * sends the marseytext help page
-
-\t - p avatar @[user]
-\t\t * sends the user's avatar
-
-\t - p waifu list
-\t\t * lists all waifu categories
-
-\t - p waifu [category]
-\t\t * sends a waifu image
-
-\t - p rocket 
-\t\t *  sends information about the next upcoming rocket lanunch
-
-\t - p imagine [prompt]
-\t\t * generates an image from the prompt
-\`\`\`
-`
 
 const marseytext_help_text = 
 `
@@ -549,7 +488,7 @@ async function handleCommand(args, message) {
             }
             let link = base + encodeURIComponent(prompt) + ".png" + `?seed=${seed}`;
             try {
-                let response = await axios.get(link, {responseType: "arraybuffer"});
+                let response = await axios.get(link, {responseType: "arraybuffer", headers: {Authorization: "X-API-Key " + keys.computerenderKey}});
                 await message.reply({
                     files: 
                     [
@@ -570,68 +509,11 @@ async function handleCommand(args, message) {
             break;
         }
 
-        case "imagine_old": {
-            break;
-            let user_obj = image_requests[message.author.id]
-            let server_obj = server_image_requests[message.channel.guildId]
-            if (user_obj == null) {
-                image_requests[message.author.id] = {}
-                user_obj = image_requests[message.author.id];
-                user_obj.last_prompt = 0;
-            }
-            if (server_obj == null) {
-                server_image_requests[message.channel.guildId] = {}
-                server_obj = server_image_requests[message.channel.guildId]
-                server_obj.last_prompt = 0;
-            }
-            let user_delta = (+Date.now() - user_obj.last_prompt) / 1000;
-            let server_delta = (+Date.now() - user_obj.last_prompt) / 1000;
-            console
-            let premium = premium_servers.includes(message.guildId);
-            if (user_delta < IMAGE_COOLDOWN && !premium) {
-                message.reply(`please wait ${IMAGE_COOLDOWN - user_delta}s (personal cooldown)`)
-                return
-            }
-
-            if (server_delta < SERVER_IMAGE_COOLDOWN && !premium) {
-                message.reply(`please wait ${SERVER_IMAGE_COOLDOWN - server_delta}s (server cooldown)`)
-                return
-            }
-
-            process.env["STABILITY_KEY"] = keys.stabilityKey
-            
-            let stability = child_process.spawn("python3", ["stability.py", ...args.slice(1)], {stdio: ["ignore", "pipe", "ignore"]})
-            console.log(`image prompt: ${prompt}`)
-            let buf = []
-            stability.stdout.on("data", (chunk) => {
-                buf.push(...chunk)
-            })
-            stability.stdout.on("end", async () => {
-                if (buf.length == 0) {
-                    await message.reply(`Something went wrong. Your prompt might have been "immoral"`)
-                    return
-                }
-                server_obj.last_prompt = +Date.now();
-                user_obj.last_prompt = +Date.now();
-                let bin_buf = Buffer.from(buf)
-                let filename = `${encodeURI(prompt.replace(/ /g,"_"))}_${+Date.now()}.png`
-                await message.reply({
-                    files: 
-                    [
-                        {
-                            attachment: bin_buf,
-                            name: filename
-                        }
-                    ],
-                });
-                fs.writeFileSync(`imagine_archive/${filename}`, bin_buf)
-            })
-        }
-
         case "img": {
             const bing_url = "https://www.bing.com/images/search?q=" + args.slice(1).join(" ")
             let response = await axios.get(bing_url);
             let doc = cheerio.load(response.data)
+            let pic_doms = doc(".iusc");
             let url = JSON.parse(doc(".iusc")[0].attribs["m"]).murl
             message.reply(url)
             break;
