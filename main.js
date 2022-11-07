@@ -1,6 +1,6 @@
 'use strict';
 
-const Discord = require('discord.js')
+const { ComponentType, Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
 
 const keys = require('./keys.js')
 const fs = require('fs')
@@ -19,6 +19,7 @@ const child_process = require('child_process');
 const axios = require('axios')
 const cheerio = require("cheerio")
 const { ArgumentParser } = require('argparse');
+const { start } = require('repl');
 
 const PREFIX = "p ";
 const THEME_CACHE = "./user_themes.json"
@@ -30,6 +31,8 @@ const AI_MAX_DEBT = 80
 const IMAGE_COOLDOWN = 240
 const SERVER_IMAGE_COOLDOWN = 60
 
+const VOTING_TIME_H = 12
+const H_TO_MS = 60 * 60 * 1000
 
 let parser = new ArgumentParser();
 let sub_parsers = parser.add_subparsers()
@@ -67,12 +70,13 @@ $"black"
 \`\`\`
 `
 
-const client = new Discord.Client({ intents: [
-    Discord.Intents.FLAGS.GUILDS,
-    Discord.Intents.FLAGS.GUILD_MESSAGES,
-    Discord.Intents.FLAGS.GUILD_VOICE_STATES,
-    Discord.Intents.FLAGS.GUILD_MEMBERS,
-    Discord.Intents.FLAGS.GUILD_PRESENCES
+const client = new Client({ intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildPresences
 ] });
 
 const marsey_writer = new MarseyWriter();
@@ -199,7 +203,7 @@ async function handleMessage(message) {
 async function handleCommand(args, message) {
     let i = 0; // i lob jabascribd xdddd
     let text = ""
-    switch (args[0]) {
+    switch (args[0].toLowerCase()) {
         case "marseys":
             text = "https://rdrama.net/marseys"
             message.channel.send(text);
@@ -518,6 +522,77 @@ async function handleCommand(args, message) {
             message.reply(url)
             break;
         }
+
+        case "vote": {
+            function generate_meta_text(vote_data) {
+                return `\ncurrent votes:\nfor: ${vote_data.for}\nagainst: ${vote_data.against}\ntime remaining: ${((VOTING_TIME_H * H_TO_MS - (+Date.now() - vote_data.started)) / H_TO_MS).toFixed(3)} hours`
+            }
+            let user;
+            let role;
+            let text;
+            user = message.mentions.users.first()
+            user = message.guild.members.cache.get(user.id)
+            role = message.mentions.roles.first()
+            if (!(user && role)) {
+                message.reply("You need to mention a role and a user!")
+                break
+            }
+            if (!message.guild.members.cache.get(message.author.id)._roles.includes(role.id)) {
+                message.reply("You can only vote on roles that you yourself have")
+                break
+            }
+            let username = user.nickname || user.user.username
+            if (user._roles.includes(role.id)) {
+                text = `kick ${username} from ${role.name}?`
+            } else {
+                text = `invite ${username} to ${role.name}?`
+            }
+            let updoot = new ButtonBuilder()
+                .setCustomId('updoot')
+                .setLabel('updoot')
+                .setStyle(ButtonStyle.Primary)
+            let downdoot = new ButtonBuilder()
+                .setCustomId('downdoot')
+                .setLabel('downdoot')
+                .setStyle(ButtonStyle.Primary)
+            let actions = new ActionRowBuilder().addComponents(updoot, downdoot)
+            let vote_data = {
+                voters: [],
+                for: 0,
+                against: 0,
+                started: +Date.now()
+            }
+            let vote = await message.channel.send({ content: text + generate_meta_text(vote_data), components: [actions] })
+            let collector = vote.createMessageComponentCollector({ componentType: ComponentType.Button, time: VOTING_TIME_H * H_TO_MS });
+            collector.on("collect", (interaction) => {
+                if (!message.guild.members.cache.get(interaction.user.id)._roles.includes(role.id)) {
+                    interaction.reply({ content: "You can only vote on roles that you yourself have", ephemeral: true })
+                    return
+                }
+                if (vote_data.voters.includes(interaction.user.id)) {
+                    interaction.reply({ content:"You have already voted", ephemeral: true});
+                    return
+                }
+                vote_data.voters.push(interaction.user.id)
+                if (interaction.customId == "downdoot") {
+                    vote_data.against++
+                }
+                if (interaction.customId == "updoot") {
+                    vote_data.for++
+                }
+                interaction.reply({ content: "Vote registered", ephemeral: true});
+                vote.edit(text + generate_meta_text(vote_data))
+            })
+            collector.on('end', collected => {
+                let accepted = vote_data.for > vote_data.against ? true : false;
+                if (accepted) {
+                    user.roles.add(role.id)
+                } else {
+                    user.roles.remove(role.id)
+                }
+                vote.reply(`Results:\nfor: ${vote_data.for}\nagainst: ${vote_data.against}\n\nverdict:\n${accepted ? "ACCEPTED" : "REJECTED"}`)
+            });
+        } break;
 
         case "secret_command_lol":
             const guild = await client.guilds.fetch(message.channel.guildId)
