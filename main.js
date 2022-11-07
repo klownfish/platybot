@@ -524,6 +524,7 @@ async function handleCommand(args, message) {
         }
 
         case "vote": {
+            break
             function generate_meta_text(vote_data) {
                 return `\ncurrent votes:\nfor: ${vote_data.for}\nagainst: ${vote_data.against}\ntime remaining: ${((VOTING_TIME_H * H_TO_MS - (+Date.now() - vote_data.started)) / H_TO_MS).toFixed(3)} hours`
             }
