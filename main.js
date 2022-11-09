@@ -45,6 +45,7 @@ const premium_servers = [
     "239483833353895936" //swas
 ]
 
+const CHAOSCORD = "1038151617159110767"
 
 const marseytext_help_text = 
 `
@@ -524,7 +525,9 @@ async function handleCommand(args, message) {
         }
 
         case "vote": {
-            break
+            if (message.guild.id != CHAOSCORD) {
+                break;
+            }
             function generate_meta_text(vote_data) {
                 return `\ncurrent votes:\nfor: ${vote_data.for}\nagainst: ${vote_data.against}\ntime remaining: ${((VOTING_TIME_H * H_TO_MS - (+Date.now() - vote_data.started)) / H_TO_MS).toFixed(3)} hours`
             }
