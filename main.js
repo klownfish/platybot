@@ -340,8 +340,10 @@ async function handleCommand(args, message) {
                 // await message.guild.me.setNickname("")
                 let name = doppelganger.nickname ? doppelganger.nickname : doppelganger.user.username
                 let content = message.content.substr(args[0].length + args[1].length + 2 + PREFIX.length)
-                let webhook = await message.channel.createWebhook(name, {
+                let webhook = await message.channel.createWebhook({
+                    name: name,
                     avatar: doppelganger.displayAvatarURL(),
+
                 })
                 await webhook.send(content)
                 await webhook.delete()
@@ -588,7 +590,7 @@ async function handleCommand(args, message) {
                 vote.edit(text + generate_meta_text(vote_data))
             })
             collector.on('end', collected => {
-                let accepted = vote_data.for > vote_data.against ? true : false;
+                let accepted = vote_data.for > vote_data.against;
                 if (accepted) {
                     user.roles.add(role.id)
                 } else {
