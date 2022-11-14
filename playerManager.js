@@ -2,6 +2,7 @@
 
 const axios = require('axios')
 const ytdl = require('youtube-dl-exec')
+const ytdl_core = require('ytdl-core');
 
 const { joinVoiceChannel, createAudioPlayer, createAudioResource, PlayerSubscription, AudioPlayer, AudioPlayerStatus } = require('@discordjs/voice');
 
@@ -22,6 +23,12 @@ class AudioYoutube {
     }
 
     async start_func() {
+        if (this.duration != 0) {
+            this.stream = await ytdl_core(this.link, { filter : 'audioonly' })
+            this.resource = createAudioResource(this.stream)
+            setTimeout(this.timeout_func, this.duration * 1000)
+            return this.resource
+        }
         this.process = ytdl.exec(
             this.link,
             {
@@ -33,11 +40,7 @@ class AudioYoutube {
             { stdio: ['ignore', 'pipe', 'ignore'] },
         );
         this.stream = this.process.stdout;
-        
         this.resource = createAudioResource(this.stream);
-        if (this.duration) {
-            setTimeout(this.timeout_func, this.duration * 1000)
-        }
         return this.resource
     }
 
@@ -47,7 +50,10 @@ class AudioYoutube {
         }
         this.stopped = true;
         this.stream.destroy();
-        this.process.cancel()
+
+        if (this.duration == 0) {
+            this.process.cancel()
+        }
     }
 
     timeout_func() {
@@ -55,7 +61,6 @@ class AudioYoutube {
             this.stopped = true;
             this.resource.audioPlayer?.stop();
             this.stream.destroy()
-            this.process.cancel()
         }
     }
 }
