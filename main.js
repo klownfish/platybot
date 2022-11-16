@@ -15,11 +15,9 @@ const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager.js');
 const OpenAI = require('openai-nodejs');
 const yts = require( 'yt-search')
-const child_process = require('child_process');
 const axios = require('axios')
 const cheerio = require("cheerio")
 const { ArgumentParser } = require('argparse');
-const { start } = require('repl');
 
 const PREFIX = "p ";
 const THEME_CACHE = "./user_themes.json"
@@ -37,8 +35,12 @@ const H_TO_MS = 60 * 60 * 1000
 let parser = new ArgumentParser();
 let sub_parsers = parser.add_subparsers()
 let imagine_parser = sub_parsers.add_parser("imagine")
-imagine_parser.add_argument("prompt", {type: "str"})
-imagine_parser.add_argument("--seed", "-s", {type: "int"})
+// imagine_parser.add_argument("prompt", {type: "str", nargs: "*"})
+// imagine_parser.add_argument("--seed", "-s", {type: "int"})
+// imagine_parser.add_argument("--width", "-w", {type: "int"})
+// imagine_parser.add_argument("--height", "-h", {type: "int"})
+
+let img2img_parser
 
 const premium_servers = [
     "827312525380026368", //cyberia
@@ -91,11 +93,6 @@ const ai_client = new OpenAI(keys.openaiKey)
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
 let player_managers = {}
-let last_gnosti = +Date.now()
-let ai_requests = {};
-
-let image_requests = {};
-let server_image_requests = {};
 
 function handleVoiceState(old_state, new_state) {
     if(old_state.channelId === null && new_state.channelId !== null) {
@@ -123,19 +120,6 @@ async function handleMessage(message) {
             if (user_prompt.length > 500) {
                 return
             }
-            let user_obj = ai_requests[message.author.id]
-            if (user_obj) {
-                let delay = +Date.now() / 1000 - user_obj.last_prompt       
-                user_obj.debt = Math.max(user_obj.debt - delay, 0)
-                if (user_obj.debt > AI_MAX_DEBT) {
-                    message.channel.send(`Please wait ${user_obj.debt - AI_MAX_DEBT} seconds. This thing costs actual money lmao`)
-                    return
-                }
-            } else {
-                ai_requests[message.author.id] = {debt:0, last_prompt:0}
-                user_obj = ai_requests[message.author.id];
-            }
-
             let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: Have you ever been to Greenwhich?\nPlatybot: I live there!\nHuman: ` + message.content + "\nPlatybot: "
             let response = await ai_client.complete(prompt, {
                 max_tokens: 200,
@@ -150,47 +134,6 @@ async function handleMessage(message) {
             console.log(response)
             console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
             message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]").replace(/Platybot: /g, ""))
-        } else
-        if (message.content.includes("platypus")) {
-            return;
-            let platy_count = message.content.match(/platy/g).length
-            let offset = Math.floor(Math.random() * platys.length)
-            let text = ""
-            for (let i = 0; i < platy_count && i < 5; i++) {
-                text += platys[(offset + i) % platys.length];
-                text += "\n"
-            }
-            message.channel.send(text);
-        } else
-        if (message.content.includes("gnosti")) {
-            let current_time = +Date.now()
-            let ms_since_last = current_time - last_gnosti
-            last_gnosti = +Date.now()
-            if (ms_since_last < 1 * 60 * 1000) {
-                return
-            }
-            let days = Math.floor(ms_since_last / (1000 * 60 * 60 * 24))
-            ms_since_last -= days * 1000 * 60 * 60 * 24
-            let hours = Math.floor(ms_since_last / (1000 * 60 * 60)) 
-            ms_since_last -= hours * 1000 * 60 * 60
-            let minutes = Math.floor(ms_since_last / (1000 * 60))
-            ms_since_last -= minutes * 1000 * 60
-            let seconds = Math.floor(ms_since_last / 1000)
-
-            let ago_text = ""
-            if (days > 0) {
-                ago_text += `${days} days, ${hours} hours and ${minutes} minutes`
-            } else
-            if (hours > 0) {
-                ago_text += `${hours} hours and ${minutes} minutes`
-            } else
-            if (minutes > 0) {
-                ago_text += `${minutes} minutes and ${seconds} seconds`
-            } else
-            if (seconds > 0) {
-                ago_text += `${seconds} seconds`
-            }
-            message.channel.send("gnosticism was last mentioned " + ago_text + " ago!")
         } else 
         if (message.content.toLowerCase().includes("byo") && Math.random() <= 0.05) {
             message.channel.send(`https://cdn.discordapp.com/attachments/863478668692029440/1003935541152190474/trim.18401F40-98E8-49F7-A258-1FEA21593076.mov`)
@@ -473,16 +416,6 @@ async function handleCommand(args, message) {
 
         case "imagine": 
         case "imagine_seeded": {
-            let last_generation = image_requests[message.author.id]
-            if (last_generation == null) {
-                last_generation = 0;
-            }
-
-            if (+Date.now() - last_generation < 10000) {
-                message.reply("10s cooldown for peter");
-                return
-            }
-            image_requests[message.author.id] = +Date.now();
             let seed;
             let prompt;
             let base = `https://api.computerender.com/generate/`
@@ -599,24 +532,6 @@ async function handleCommand(args, message) {
                 vote.reply(`Results:\nfor: ${vote_data.for}\nagainst: ${vote_data.against}\n\nverdict:\n${accepted ? "ACCEPTED" : "REJECTED"}`)
             });
         } break;
-
-        case "secret_command_lol":
-            const guild = await client.guilds.fetch(message.channel.guildId)
-            const members = await guild.members.fetch() // returns Collection
-            // try {
-            //     fs.mkdirSync("./" + message.channel.guildId)
-            // } catch{}
-            for (let member of members) {
-                if (member[1].nickname == "root's bitch boy") {
-                    console.log("found user", member[1].nickname)
-                    member[1].setNickname("")
-                }
-                // let url = member[1].displayAvatarURL()
-                // var request = require("request");
-                // request(url).pipe(fs.createWriteStream(`./${message.channel.guildId}/${member[1].displayName}.webp`))
-            }
-            break
-
 
         default:
             let maybe_emoji = generateEmojiText(args[0]);

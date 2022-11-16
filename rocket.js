@@ -2,7 +2,7 @@
 
 const axios = require('axios')
 // at the top of your file
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 // inside a command, event listener, etc.
 
@@ -28,7 +28,7 @@ class RocketAPI {
             this.spacex = response.data[0]
             this.cache_updated = current_time
         }
-        let embed = new MessageEmbed()
+        let embed = new EmbedBuilder()
         embed.setColor('#ff6900')
         let second_message = ""
         if (this.ll.name) {
@@ -55,13 +55,13 @@ class RocketAPI {
             } else {
                 when_launch += "right now!"
             }
-            embed.addField('launches in', when_launch, false)
+            embed.addFields( {name: 'launches in', value: when_launch} )
         }
         //spacex specific
         if (this.ll?.launch_service_provider?.name == "SpaceX") {
             if (this.spacex?.links?.webcast) {
                 embed.setURL(this.spacex?.links?.webcast)
-                embed.addField("webcast", this.spacex?.links?.webcast, false)
+                embed.addFields( {name: "webcast", value: this.spacex?.links?.webcast} )
                 second_message = this.spacex?.links?.webcast;
             }
 
@@ -71,7 +71,7 @@ class RocketAPI {
 
         } else if (this.ll.vidURLs) {
             embed.setURL(this.ll.vidURLs[0])
-            embed.addField("webcast", this.ll.vidURLs[0], false)
+            embed.addFields( {name: "webcast", value: this.ll.vidURLs[0]} )
             second_message = this.ll.vidURLs[0]
         }
 
