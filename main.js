@@ -18,6 +18,8 @@ const yts = require( 'yt-search')
 const axios = require('axios')
 const cheerio = require("cheerio")
 const { ArgumentParser } = require('argparse');
+const { Computerender } =  require("computerender")
+const sharp = require('sharp');
 
 const PREFIX = "p ";
 const THEME_CACHE = "./user_themes.json"
@@ -32,15 +34,17 @@ const SERVER_IMAGE_COOLDOWN = 60
 const VOTING_TIME_H = 12
 const H_TO_MS = 60 * 60 * 1000
 
+const EMOJI_LINK = "https://rdrama.net/e/"
+
 let parser = new ArgumentParser();
 let sub_parsers = parser.add_subparsers()
 let imagine_parser = sub_parsers.add_parser("imagine")
-// imagine_parser.add_argument("prompt", {type: "str", nargs: "*"})
-// imagine_parser.add_argument("--seed", "-s", {type: "int"})
-// imagine_parser.add_argument("--width", "-w", {type: "int"})
-// imagine_parser.add_argument("--height", "-h", {type: "int"})
 
-let img2img_parser
+// imagine_parser.add_argument("prompt", {type: "str", nargs: "*"})
+// imagine_parser.add_argument("--seed", "", {type: "int"})
+// imagine_parser.add_argument("--width", "", {type: "int"})
+// imagine_parser.add_argument("--height", "", {type: "int"})
+
 
 const premium_servers = [
     "827312525380026368", //cyberia
@@ -89,6 +93,7 @@ const deleter = new Deleter();
 const waifu = new Waifu();
 const rocket = new Rocket();
 const ai_client = new OpenAI(keys.openaiKey)
+let cr = new Computerender(keys.computerenderKey);
 
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
@@ -415,36 +420,38 @@ async function handleCommand(args, message) {
            break;
 
         case "imagine": 
+        case "img2img":
         case "imagine_seeded": {
             let seed;
             let prompt;
-            let base = `https://api.computerender.com/generate/`
-            if (args[0] == "imagine") {
+            if (args[0] == "imagine" || args[0] == "img2img") {
                 seed = `${Math.floor(+Date.now() / 1000)}`
                 prompt = args.slice(1).join(" ")
             } else {
                 seed = args[1];
                 prompt = args.slice(2).join(" ")
             }
-            let link = base + encodeURIComponent(prompt) + ".png" + `?seed=${seed}`;
             try {
-                let response = await axios.get(link, {responseType: "arraybuffer", headers: {Authorization: "X-API-Key " + keys.computerenderKey}});
-                await message.reply({
-                    files: 
-                    [
-                        {
-                            attachment: response.data,
-                            name: prompt.replace(/ /g, "_") + `_seed_${seed}.png`
-                        }
-                    ],
-                });
-            } catch (err) {
-                console.log(err)
-                if (err.code == 500) {
-                    message.reply("it borked <:basilbruh:860924777891495957>")
+                let output_img;
+                if (message.attachments.first()) {
+                    let src_img_url = message.attachments.first().proxyURL;
+                    let src_img = await axios.get(src_img_url, {responseType: "arraybuffer"})
+                    let resized_img = await sharp(src_img.data).resize(512, 512)
+                        .png()
+                        .toBuffer()  
+                    // await message.reply({
+                    //     files: [{attachment: resized_img, name: `test.png`}]
+                    // })
+                    output_img = await cr.generateImage({prompt: prompt, img: resized_img})
                 } else {
-                    message.reply("it borked <:basilbruh:860924777891495957>")
+                    output_img = await cr.generateImage({prompt: prompt})
                 }
+                await message.reply({
+                    files: [{attachment: output_img, name: prompt.replace(/ /g, "_") + `_seed_${seed}.jpg`}]
+                })
+            } catch (e) {
+                console.log(e)
+                await message.reply("it borked <:basilbruh:860924777891495957>")
             }
             break;
         }
