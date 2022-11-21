@@ -438,9 +438,9 @@ async function handleCommand(args, message) {
                     // await message.reply({
                     //     files: [{attachment: resized_img, name: `test.png`}]
                     // })
-                    output_img = await cr.generateImage({prompt: prompt, img: resized_img})
+                    output_img = await cr.generateImage({prompt: prompt, img: resized_img, seed: seed})
                 } else {
-                    output_img = await cr.generateImage({prompt: prompt})
+                    output_img = await cr.generateImage({prompt: prompt, seed: seed})
                 }
                 await message.reply({
                     files: [{attachment: output_img, name: prompt.replace(/ /g, "_") + `_seed_${seed}.jpg`}]
