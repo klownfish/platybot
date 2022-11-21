@@ -133,10 +133,6 @@ async function handleMessage(message) {
                 stop: ["Human: "]
             })
 
-            user_obj.last_prompt = +Date.now() / 1000
-            user_obj.debt += AI_COST
-            console.log(prompt)
-            console.log(response)
             console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
             message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]").replace(/Platybot: /g, ""))
         } else 
