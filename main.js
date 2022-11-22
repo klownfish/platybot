@@ -283,7 +283,7 @@ async function handleCommand(args, message) {
             if (doppelganger != null) {
                 // await message.guild.me.setNickname("")
                 let name = doppelganger.nickname ? doppelganger.nickname : doppelganger.user.username
-                let content = message.content.substr(args[0].length + args[1].length + 2 + PREFIX.length)
+                let content = message.content.substr(args[0].length + args[1].length + 2 + PREFIX.length).replace(/@/g, "[@]")
                 let webhook = await message.channel.createWebhook({
                     name: name,
                     avatar: doppelganger.displayAvatarURL(),
