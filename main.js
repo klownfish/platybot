@@ -430,9 +430,17 @@ async function handleCommand(args, message) {
             try {
                 let output_img;
                 if (message.attachments.first()) {
+                    let max_pixels = 512 * 512
+
                     let src_img_url = message.attachments.first().proxyURL;
                     let src_img = await axios.get(src_img_url, {responseType: "arraybuffer"})
-                    let resized_img = await sharp(src_img.data).resize(512, 512)
+                    let sharp_img = sharp(src_img.data)
+                    let metadata = await sharp_img.metadata()
+                    let src_pixels = metadata.width * metadata.height
+                    let scale = Math.sqrt(max_pixels / src_pixels);
+                    let scaled_height = Math.floor(metadata.height * scale / 8) * 8
+                    let scaled_width = Math.floor(metadata.width * scale / 8) * 8
+                    let resized_img = await sharp(src_img.data).resize(scaled_width, scaled_height)
                         .png()
                         .toBuffer()  
                     // await message.reply({
