@@ -430,7 +430,7 @@ async function handleCommand(args, message) {
             try {
                 let output_img;
                 if (message.attachments.first()) {
-                    let max_pixels = 512 * 512
+                    let max_pixels = 768 * 768
 
                     let src_img_url = message.attachments.first().proxyURL;
                     let src_img = await axios.get(src_img_url, {responseType: "arraybuffer"})
@@ -446,9 +446,9 @@ async function handleCommand(args, message) {
                     // await message.reply({
                     //     files: [{attachment: resized_img, name: `test.png`}]
                     // })
-                    output_img = await cr.generateImage({prompt: prompt, img: resized_img, seed: seed})
+                    output_img = await cr.generateImage({prompt: prompt, img: resized_img, seed: seed, iterations: 40})
                 } else {
-                    output_img = await cr.generateImage({prompt: prompt, seed: seed})
+                    output_img = await cr.generateImage({prompt: prompt, seed: seed, w: 768, h: 768, iterations: 40})
                 }
                 await message.reply({
                     files: [{attachment: output_img, name: prompt.replace(/ /g, "_") + `_seed_${seed}.jpg`}]
