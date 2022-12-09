@@ -20,6 +20,7 @@ const cheerio = require("cheerio")
 const { ArgumentParser } = require('argparse');
 const { Computerender } =  require("computerender")
 const sharp = require('sharp');
+const { parse } = require('path');
 
 const PREFIX = "p ";
 const THEME_CACHE = "./user_themes.json"
@@ -36,15 +37,23 @@ const H_TO_MS = 60 * 60 * 1000
 
 const EMOJI_LINK = "https://rdrama.net/e/"
 
-let parser = new ArgumentParser();
-let sub_parsers = parser.add_subparsers()
-let imagine_parser = sub_parsers.add_parser("imagine")
+// let parser = new ArgumentParser();
+// let sub_parsers = parser.add_subparsers()
+// let imagine_parser = sub_parsers.add_parser("imagine")
 
 // imagine_parser.add_argument("prompt", {type: "str", nargs: "*"})
 // imagine_parser.add_argument("--seed", "", {type: "int"})
 // imagine_parser.add_argument("--width", "", {type: "int"})
 // imagine_parser.add_argument("--height", "", {type: "int"})
 
+let imagine_parser = new ArgumentParser();
+
+imagine_parser.add_argument("prompt", {type: "str", nargs: "*"})
+imagine_parser.add_argument("--seed", {type: "int"})
+imagine_parser.add_argument("--resolution", {type: "int", nargs: 2})
+imagine_parser.add_argument("--file", {type: "str"})
+imagine_parser.add_argument("--guidance", {type: "float"})
+imagine_parser.add_argument("--iterations", {type: "int"})
 
 const premium_servers = [
     "827312525380026368", //cyberia
@@ -151,26 +160,6 @@ async function handleCommand(args, message) {
     switch (args[0].toLowerCase()) {
         case "marseys":
             text = "https://rdrama.net/marseys"
-            message.channel.send(text);
-            break;
-
-        case "platys":
-            i = 1;
-            text = "```"
-            for (let key in valid_emojis) {
-                if (key.startsWith("platy")) {
-                    text += key + (i++ % 3 == 0 ? "\n" : " ");
-                }
-            }
-            text += "```"
-            message.channel.send(text);
-            break;
-    
-        case "emoji":
-            text = generateEmojiText(args[1]);
-            if (text == "") {
-                text = "invalid emoji";
-            }
             message.channel.send(text);
             break;
         
@@ -415,41 +404,71 @@ async function handleCommand(args, message) {
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
            break;
 
-        case "imagine": 
-        case "img2img":
-        case "imagine_seeded": {
+        case "imagine": {
             let seed;
             let prompt;
-            if (args[0] == "imagine" || args[0] == "img2img") {
-                seed = `${Math.floor(+Date.now() / 1000)}`
-                prompt = args.slice(1).join(" ")
-            } else {
-                seed = args[1];
-                prompt = args.slice(2).join(" ")
-            }
+            let resolution;
+            let iterations;
+            let guidance;
+            let default_resolution = [512, 512]
+            let default_iterations = 50;
+            let default_guidance = 7.5;
+            let max_cost = 512 * 512 * 50 * 4
+            let premium_max_cost = 512 * 512 * 50 * 10
+            let default_cost = default_resolution[0] * default_resolution[1] * default_iterations;
+            let parsed_args = imagine_parser.parse_args(args.slice(1))
+
+            seed = parsed_args.seed ? parsed_args.seed : `${Math.floor(+Date.now() / 1000)}`
+            resolution = parsed_args.resolution ? parsed_args.resolution : default_resolution
+            iterations = parsed_args.iterations ? parsed_args.iterations : default_iterations
+            guidance = parsed_args.guidance ? parsed_args.guidance : default_guidance
+            // console.log(parsed_args.prompt, args.slice(2))
+            prompt = parsed_args.prompt.join(" ")
+
+            let options;
             try {
                 let output_img;
-                if (message.attachments.first()) {
-                    let max_pixels = 768 * 768
+                if (message.attachments.first() || parsed_args.file) {
+                    let src_img_url = parsed_args.file ? parsed_args.file : message.attachments.first().proxyURL;
+                    let metadata
+                    let sharp_img
+                    try {
+                        let src_img = await axios.get(src_img_url, {responseType: "arraybuffer"})
+                        sharp_img = sharp(src_img.data)
+                        metadata = await sharp_img.metadata()
+                    } catch {
+                        message.reply("Something wrong with the file")
+                    }
+                    let resize_height;
+                    let resize_width;
+                    if (parsed_args.resolution) {
+                        resize_width = Math.floor(parsed_args.resolution[0] / 64) * 64
+                        resize_height = Math.floor(parsed_args.resolution[1] / 64) * 64
+                    } else {
+                        let max_pixels = default_cost[0] * default_cost[1]
+                        let src_pixels = metadata.width * metadata.height
+                        let scale = src_pixels > max_pixels ? Math.sqrt(max_pixels / src_pixels) : 1
+                        resize_height = Math.floor(metadata.height * scale / 64) * 64
+                        resize_width = Math.floor(metadata.width * scale / 64) * 64
 
-                    let src_img_url = message.attachments.first().proxyURL;
-                    let src_img = await axios.get(src_img_url, {responseType: "arraybuffer"})
-                    let sharp_img = sharp(src_img.data)
-                    let metadata = await sharp_img.metadata()
-                    let src_pixels = metadata.width * metadata.height
-                    let scale = Math.sqrt(max_pixels / src_pixels);
-                    let scaled_height = Math.floor(metadata.height * scale / 8) * 8
-                    let scaled_width = Math.floor(metadata.width * scale / 8) * 8
-                    let resized_img = await sharp(src_img.data).resize(scaled_width, scaled_height)
-                        .png()
-                        .toBuffer()  
-                    // await message.reply({
-                    //     files: [{attachment: resized_img, name: `test.png`}]
-                    // })
-                    output_img = await cr.generateImage({prompt: prompt, img: resized_img, seed: seed, iterations: 40})
+                    }
+                    let resized_img = await sharp_img.resize(resize_width, resize_height)
+                    .png()
+                    .toBuffer()  
+                    options = {prompt: prompt, img: resized_img, seed: seed, iterations: iterations, guidance: guidance}
                 } else {
-                    output_img = await cr.generateImage({prompt: prompt, seed: seed, w: 768, h: 768, iterations: 40})
+                    options = {prompt: prompt, seed: seed, w: resolution[0], h: resolution[1], iterations: iterations, guidance: guidance}
                 }
+
+                let cost = options.h * options.w * options.iterations;
+                let allowed_cost = premium_servers.includes(message.guildId) ? premium_max_cost : max_cost;
+                if (cost > allowed_cost) {
+                    message.reply("too expensive")
+                    break;
+                }
+                console.log(options)
+                output_img = await cr.generateImage(options)
+
                 await message.reply({
                     files: [{attachment: output_img, name: prompt.replace(/ /g, "_") + `_seed_${seed}.jpg`}]
                 })
