@@ -466,7 +466,6 @@ async function handleCommand(args, message) {
                     message.reply("too expensive")
                     break;
                 }
-                console.log(options)
                 output_img = await cr.generateImage(options)
 
                 await message.reply({
@@ -562,6 +561,31 @@ async function handleCommand(args, message) {
                 vote.reply(`Results:\nfor: ${vote_data.for}\nagainst: ${vote_data.against}\n\nverdict:\n${accepted ? "ACCEPTED" : "REJECTED"}`)
             });
         } break;
+
+        case "autest": {
+            let messages = [message]
+            let filtered_messages = []
+            let userid = message.mentions.members.first().user.id
+            let fetches = 5
+            for (let i = 0; i < fetches; i++) {
+                let partial_messages = await message.channel.messages.fetch({limit: 100, before: messages[messages.length - 1].id,  cache: true})
+                for (let msg of partial_messages) {
+                    messages.push(msg[1])
+                }
+            }
+
+            let f = fs.openSync(userid + ".txt", "w")
+            for (message of messages) {
+                if (message.author.id == userid)  {
+                    if (!message.content) {
+                        continue
+                    }
+                    let filtered_content = message.content.replace(/\<[\s\S]*?\>/g, "")
+                    fs.writeFileSync(f, filtered_content + "\n\n")
+                }
+            }
+            break
+        }
 
         default:
             let maybe_emoji = generateEmojiText(args[0]);
