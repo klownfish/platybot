@@ -566,12 +566,13 @@ async function handleCommand(args, message) {
             let messages = [message]
             let filtered_messages = []
             let userid = message.mentions.members.first().user.id
-            let fetches = 5
+            let fetches = 20
             for (let i = 0; i < fetches; i++) {
                 let partial_messages = await message.channel.messages.fetch({limit: 100, before: messages[messages.length - 1].id,  cache: true})
                 for (let msg of partial_messages) {
                     messages.push(msg[1])
                 }
+                console.log(messages.length)
             }
 
             let f = fs.openSync(userid + ".txt", "w")
