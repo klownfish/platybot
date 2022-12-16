@@ -61,6 +61,8 @@ const premium_servers = [
 ]
 
 const CHAOSCORD = "1038151617159110767"
+const ARIESCORD = "1008083642922319892"
+const ARIESCORD_GENERAL = "1051317440342151269"
 
 const marseytext_help_text = 
 `
@@ -405,16 +407,20 @@ async function handleCommand(args, message) {
            break;
 
         case "imagine": {
+            if (message.guild.id  == ARIESCORD && message.channel.id == ARIESCORD_GENERAL) {
+                await message.reply("you made arran angry <:OHOHOHO:854086262292873327>")
+                return
+            }
             let seed;
             let prompt;
             let resolution;
             let iterations;
             let guidance;
             let default_resolution = [512, 512]
-            let default_iterations = 50;
+            let default_iterations = 40;
             let default_guidance = 7.5;
-            let max_cost = 512 * 512 * 50 * 4
-            let premium_max_cost = 512 * 512 * 50 * 10
+            let max_cost = 512 * 512 * 40 * 4
+            let premium_max_cost = 512 * 512 * 40 * 10
             let default_cost = default_resolution[0] * default_resolution[1] * default_iterations;
             let parsed_args = imagine_parser.parse_args(args.slice(1))
 
@@ -422,7 +428,6 @@ async function handleCommand(args, message) {
             resolution = parsed_args.resolution ? parsed_args.resolution : default_resolution
             iterations = parsed_args.iterations ? parsed_args.iterations : default_iterations
             guidance = parsed_args.guidance ? parsed_args.guidance : default_guidance
-            // console.log(parsed_args.prompt, args.slice(2))
             prompt = parsed_args.prompt.join(" ")
 
             let options;
