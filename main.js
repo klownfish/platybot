@@ -450,12 +450,11 @@ async function handleCommand(args, message) {
                         resize_width = Math.floor(parsed_args.resolution[0] / 64) * 64
                         resize_height = Math.floor(parsed_args.resolution[1] / 64) * 64
                     } else {
-                        let max_pixels = default_cost[0] * default_cost[1]
+                        let max_pixels = default_resolution[0] * default_resolution[1]
                         let src_pixels = metadata.width * metadata.height
-                        let scale = src_pixels > max_pixels ? Math.sqrt(max_pixels / src_pixels) : 1
+                        let scale = Math.sqrt(max_pixels / src_pixels)
                         resize_height = Math.floor(metadata.height * scale / 64) * 64
                         resize_width = Math.floor(metadata.width * scale / 64) * 64
-
                     }
                     let resized_img = await sharp_img.resize(resize_width, resize_height)
                     .png()
