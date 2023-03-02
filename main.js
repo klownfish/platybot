@@ -13,7 +13,7 @@ const EelSlapper = require('./eel_slap.js');
 const ytdl = require("ytdl-core");
 const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager.js');
-const OpenAI = require('openai-nodejs');
+const OpenAI = require('openai');
 const yts = require( 'yt-search')
 const axios = require('axios')
 const cheerio = require("cheerio")
@@ -21,6 +21,7 @@ const { ArgumentParser } = require('argparse');
 const { Computerender } =  require("computerender")
 const sharp = require('sharp');
 const { parse } = require('path');
+const { Configuration, OpenAIApi } = require("openai");
 
 const PREFIX = "p ";
 const THEME_CACHE = "./user_themes.json"
@@ -64,7 +65,7 @@ const CHAOSCORD = "1038151617159110767"
 const ARIESCORD = "1008083642922319892"
 const ARIESCORD_GENERAL = "1051317440342151269"
 
-const marseytext_help_text = 
+const marseytext_help_text =
 `
 \`\`\`
 command: "p marseytext [text]"
@@ -103,8 +104,11 @@ const eelSlapper = new EelSlapper();
 const deleter = new Deleter();
 const waifu = new Waifu();
 const rocket = new Rocket();
-const ai_client = new OpenAI(keys.openaiKey)
 let cr = new Computerender(keys.computerenderKey);
+const configuration = new Configuration({
+  apiKey: keys.openaiKey,
+});
+const ai_client = new OpenAIApi(configuration);
 
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
@@ -132,21 +136,20 @@ async function handleMessage(message) {
             await handleCommand(args, message);
         } else
         if (message.content.toLowerCase().includes("platybot") || message.mentions.has(client.user)) {
-            let user_prompt = message.content.trim()
-            if (user_prompt.length > 500) {
+            let prompt = message.content.trim()
+            if (prompt.length > 500) {
                 return
             }
-            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: Have you ever been to Greenwhich?\nPlatybot: I live there!\nHuman: ` + message.content + "\nPlatybot: "
-            let response = await ai_client.complete(prompt, {
-                max_tokens: 200,
-                temperature: 0.8,
-                n: 1,
-                stop: ["Human: "]
+            let response = await ai_client.createChatCompletion({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    {"role": "system", "content": "You are a helpful chatbot called Platybot. Answer as concisely and friendly as possible."},
+                    {"role": "user", "content": prompt}
+                ]
             })
-
-            console.log(`sent an openAI request worth ${response.usage.total_tokens} tokens`)
-            message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]").replace(/Platybot: /g, ""))
-        } else 
+            let output = response.data.choices[0].message.content.replace(/@/g, "[@]")
+            message.reply(output)
+        } else
         if (message.content.toLowerCase().includes("byo") && Math.random() <= 0.05) {
             message.channel.send(`https://cdn.discordapp.com/attachments/863478668692029440/1003935541152190474/trim.18401F40-98E8-49F7-A258-1FEA21593076.mov`)
         }
@@ -164,7 +167,7 @@ async function handleCommand(args, message) {
             text = "https://rdrama.net/marseys"
             message.channel.send(text);
             break;
-        
+
         case "pat":
             let mentioned = message.mentions.members;
             let sent_something = false;
@@ -173,7 +176,7 @@ async function handleCommand(args, message) {
                 let url = `https://cdn.discordapp.com/avatars/${guild_member[1].user.id}/${guild_member[1].user.avatar}.png`
                 let bin = await patter.getPatGif(url);
                 message.channel.send({
-                    files: 
+                    files:
                     [
                         {
                             attachment: bin,
@@ -183,7 +186,7 @@ async function handleCommand(args, message) {
                 });
             }
             if (!sent_something) {
-                message.channel.send("You need to mention someone");   
+                message.channel.send("You need to mention someone");
             }
             break;
 
@@ -191,7 +194,7 @@ async function handleCommand(args, message) {
             let bin = marsey_writer.getMarseyText(message.content.substr(args[0].length + 1 + PREFIX.length));
             if (bin) {
                 message.channel.send({
-                    files: 
+                    files:
                     [
                         {
                             attachment: bin,
@@ -221,7 +224,7 @@ async function handleCommand(args, message) {
                 } else {
                     link = args[1];
                 }
-                if (!ytdl.validateURL(link)) {                    
+                if (!ytdl.validateURL(link)) {
                     let search = await yts.search(args.slice(1).join(""))
                     link = search.videos[0].url
                 }
@@ -233,7 +236,7 @@ async function handleCommand(args, message) {
             }
             break;
         }
-        
+
         case "moeradio": {
             let channel = message.member?.voice.channel
             if (!(message.channel.guildId in player_managers)) {
@@ -255,11 +258,11 @@ async function handleCommand(args, message) {
             player_managers[message.channel.guildId].set_repeat(!repeat_status)
             message.channel.send(`repeating: ${!repeat_status}`)
             break;
-            
+
         case "stop":
             player_managers[message.channel.guildId].stop()
             break
-        
+
         case "skip":
             player_managers[message.channel.guildId].skip()
             break;
@@ -297,14 +300,14 @@ async function handleCommand(args, message) {
 
         case "avatar":
             let mentioned2 = message.mentions.members; // JABASCRIBD XDDDD (and c but i don't care)
-            let sent_something2 = false; 
+            let sent_something2 = false;
             for (let guild_member of mentioned2) {
                 sent_something2 = true;
                 let url = `https://cdn.discordapp.com/avatars/${guild_member[1].user.id}/${guild_member[1].user.avatar}.png`
                 message.channel.send(url)
             }
             if (!sent_something2) {
-                message.channel.send("You need to mention someone");   
+                message.channel.send("You need to mention someone");
             }
             break;
 
@@ -330,7 +333,7 @@ async function handleCommand(args, message) {
                 message.channel.send(text);
             }
             break;
-        
+
         case "slap":
             text = await waifu.getWaifu("slap")
             message.channel.send(text)
@@ -345,7 +348,7 @@ async function handleCommand(args, message) {
                 let url = `https://cdn.discordapp.com/avatars/${guild_member[1].user.id}/${guild_member[1].user.avatar}.png`
                 let bin = await eelSlapper.getEelSlapGif(url);
                 message.channel.send({
-                    files: 
+                    files:
                     [
                         {
                             attachment: bin,
@@ -355,7 +358,7 @@ async function handleCommand(args, message) {
                 });
             }
             if (!eel_sent_something) {
-                message.channel.send("You need to mention someone");   
+                message.channel.send("You need to mention someone");
             }
             break;
 
@@ -368,7 +371,7 @@ async function handleCommand(args, message) {
                 let url = `https://cdn.discordapp.com/avatars/${guild_member[1].user.id}/${guild_member[1].user.avatar}.png`
                 let bin = await deleter.getDeleteGif(url);
                 message.channel.send({
-                    files: 
+                    files:
                     [
                         {
                             attachment: bin,
@@ -378,13 +381,13 @@ async function handleCommand(args, message) {
                 });
             }
             if (!delete_sent_something) {
-                message.channel.send("You need to mention someone");   
+                message.channel.send("You need to mention someone");
             }
             break;
 
         case "theme":
             if (args[1] === "none") {
-                themes[message.author.id] = null;   
+                themes[message.author.id] = null;
             }
             else if (ytdl.validateURL(args[1])) {
                 themes[message.author.id] = args[1];
@@ -401,7 +404,7 @@ async function handleCommand(args, message) {
                 message.channel.send(rocket_message);
             }
             break
-        
+
         case "rules":
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
            break;
@@ -458,12 +461,12 @@ async function handleCommand(args, message) {
                     }
                     let resized_img = await sharp_img.resize(resize_width, resize_height)
                     .png()
-                    .toBuffer()  
+                    .toBuffer()
                     options = {prompt: prompt, img: resized_img, seed: seed, iterations: iterations, guidance: guidance}
                 } else {
                     options = {prompt: prompt, seed: seed, w: resolution[0], h: resolution[1], iterations: iterations, guidance: guidance}
                 }
-
+                console.log()
                 let cost = options.h * options.w * options.iterations;
                 let allowed_cost = premium_servers.includes(message.guildId) ? premium_max_cost : max_cost;
                 if (cost > allowed_cost) {
@@ -490,6 +493,36 @@ async function handleCommand(args, message) {
             let url = JSON.parse(doc(".iusc")[0].attribs["m"]).murl
             message.reply(url)
             break;
+        }
+
+        case "davinci": {
+            let prompt = args.slice(1).join(" ")
+            if (prompt.length > 500) {
+                return
+            }
+            let response = await ai_client.complete(prompt, {
+                model: "text-davinci-003",
+                max_tokens: 200,
+                temperature: 0.8,
+                n: 1,
+            })
+            message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]"))
+        }
+
+        case "chat": {
+            let prompt = args.slice(1).join(" ")
+            if (prompt.length > 500) {
+                return
+            }
+            let response = await ai_client.createChatCompletion({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    {"role": "system", "content": "You are a helpful assistant called Platybot. Answer as concisely and friendly as possible."},
+                    {"role": "user", "content": prompt}
+                ]
+            })
+            let output = response.data.choices[0].message.content.replace(/@/g, "[@]")
+            message.channel.send(output)
         }
 
         case "vote": {
