@@ -9,7 +9,7 @@
         "computerender": "^0.1.2",
         "discord.js": "latest",
         "gif.node": "latest",
-        "openai-nodejs": "^1.1.0",
+        "openai": "^3.2.1",
         "package.json": "latest",
         "puppeteer": "^18.0.5",
         "request": "latest",
