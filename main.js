@@ -509,6 +509,7 @@ async function handleCommand(args, message) {
             message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]"))
         }
 
+        case "pls":
         case "chat": {
             let prompt = args.slice(1).join(" ")
             if (prompt.length > 500) {
