@@ -140,7 +140,7 @@ async function handleMessage(message) {
             if (user_prompt.length > 200) {
                 return
             }
-            let prompt = `The following is a conversation with the friendly AI Platybot:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: Have you ever been to Greenwhich?\nPlatybot: I live there!\nHuman: ` + user_prompt + "\nPlatybot: "
+            let prompt = `The following is a friendly chat conversation between Platybot and Human:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: Have you ever been to Greenwhich?\nPlatybot: I live there!\nHuman: ` + user_prompt + "\nPlatybot: "
             const completion = await ai_client.createCompletion({
                 model: "text-davinci-003",
                 prompt: prompt,
@@ -495,20 +495,6 @@ async function handleCommand(args, message) {
             break;
         }
 
-        case "davinci": {
-            let prompt = args.slice(1).join(" ")
-            if (prompt.length > 500) {
-                return
-            }
-            let response = await ai_client.complete(prompt, {
-                model: "text-davinci-003",
-                max_tokens: 200,
-                temperature: 0.8,
-                n: 1,
-            })
-            message.channel.send(response.choices[0].text.trim().replace(/@/g, "[@]"))
-        }
-
         case "pls":
         case "chat": {
             let prompt = args.slice(1).join(" ")
@@ -524,6 +510,7 @@ async function handleCommand(args, message) {
             })
             let output = response.data.choices[0].message.content.replace(/@/g, "[@]")
             message.reply(output)
+            break;
         }
 
         case "vote": {
