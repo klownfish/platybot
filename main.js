@@ -136,18 +136,18 @@ async function handleMessage(message) {
             await handleCommand(args, message);
         } else
         if (message.content.toLowerCase().includes("platybot") || message.mentions.has(client.user)) {
-            let user_prompt = message.content.trim()
-            if (user_prompt.length > 200) {
+            let prompt = message.content.trim()
+            if (prompt.length > 500) {
                 return
             }
-            let prompt = `The following is a friendly chat conversation between Platybot and Human:\nHuman: How are you doing?\nPlatybot: Pretty good! How about you?\nHuman: also good!\nPlatybot: I'm happy to hear!\nHuman: Have you ever been to Greenwhich?\nPlatybot: I live there!\nHuman: ` + user_prompt + "\nPlatybot: "
-            const completion = await ai_client.createCompletion({
-                model: "text-davinci-003",
-                prompt: prompt,
-                max_tokens: 200,
-                temperature: 0.8,
-              });
-            let output = completion.data.choices[0].text.replace(/@/g, "[@]")
+            let response = await ai_client.createChatCompletion({
+                model: "gpt-3.5-turbo",
+                messages: [
+                    {"role": "system", "content": `You are an incredibly friendly woman called Platybot. You love having casual conversations and always respond with lots of emojis. Try to be as nice as possible no matter the situation. You do not want to assist anyone. You are a human, not a chatbot.`},
+                    {"role": "user", "content": prompt}
+                ]
+            })
+            let output = response.data.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
             message.reply(output)
         } else
         if (message.content.toLowerCase().includes("byo") && Math.random() <= 0.05) {
@@ -508,7 +508,7 @@ async function handleCommand(args, message) {
                     {"role": "user", "content": prompt}
                 ]
             })
-            let output = response.data.choices[0].message.content.replace(/@/g, "[@]")
+            let output = response.data.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
             message.reply(output)
             break;
         }
