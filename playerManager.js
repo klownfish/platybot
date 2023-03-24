@@ -23,25 +23,13 @@ class AudioYoutube {
     }
 
     async start_func() {
-        if (this.duration != 0) {
-            this.stream = await ytdl_core(this.link, { filter : 'audioonly' })
-            this.resource = createAudioResource(this.stream)
+        this.stream = await ytdl_core(this.link, { filter : 'audioonly', highWaterMark: 1000000 })
+        this.resource = createAudioResource(this.stream)
+        if (this.duration > 0) {
             setTimeout(this.timeout_func, this.duration * 1000)
-            return this.resource
         }
-        this.process = ytdl.exec(
-            this.link,
-            {
-                o: '-',
-                q: '',
-                f: 'bestaudio[acodec=opus]',
-                r: '100K',
-            },
-            { stdio: ['ignore', 'pipe', 'ignore'] },
-        );
-        this.stream = this.process.stdout;
-        this.resource = createAudioResource(this.stream);
         return this.resource
+
     }
 
     async stop_func() {
@@ -50,13 +38,11 @@ class AudioYoutube {
         }
         this.stopped = true;
         this.stream.destroy();
-
-        if (this.duration == 0) {
-            this.process.cancel()
-        }
+        console.log("stopped")
     }
 
     timeout_func() {
+        console.log("timed out")
         if (this.stopped == false) {
             this.stopped = true;
             this.resource.audioPlayer?.stop();
@@ -129,13 +115,13 @@ class PlayerManager {
             this.main_player.play(resource)
             this.main_playing = true;
             if (!this.interrupt_playing) {
-                this.connection.subscribe(this.main_player);   
+                this.connection.subscribe(this.main_player);
             }
         } else {
             this.repeat = false;
             this.queue.push(audio)
         }
-    } 
+    }
 
     async interrupt_play(audio, channelId) {
         this.channelId = channelId
@@ -169,7 +155,7 @@ class PlayerManager {
     }
 
     set_repeat(status) {
-        this.repeat = status 
+        this.repeat = status
     }
 
     get_repeat() {
@@ -208,7 +194,7 @@ class PlayerManager {
                 this.interrupt_playing = false;
                 this.try_to_disconnect();
             }
-        } 
+        }
     }
 }
 

@@ -2,7 +2,7 @@
     "name": "platybot",
     "version": "1.0.0",
     "dependencies": {
-        "@discordjs/voice": "latest",
+        "@discordjs/voice": "^0.15.0",
         "argparse": "^2.0.1",
         "axios": "latest",
         "canvas": "latest",
