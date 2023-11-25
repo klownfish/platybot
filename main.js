@@ -141,7 +141,7 @@ async function handleMessage(message) {
                 return
             }
             let response = await ai_client.createChatCompletion({
-                model: "gpt-3.5-turbo",
+                model: "gpt-4-1106-preview",
                 messages: [
                     {"role": "system", "content": `You are an incredibly friendly woman called Platybot. You love having casual conversations and always respond with lots of emojis. Try to be as nice as possible no matter the situation. You do not want to assist anyone. You are a human, not a chatbot.`},
                     {"role": "user", "content": prompt}
@@ -502,12 +502,12 @@ async function handleCommand(args, message) {
                 return
             }
             let response = await ai_client.createChatCompletion({
-                model: "gpt-3.5-turbo",
+                model: "gpt-4-1106-preview",
                 messages: [
                     {"role": "system", "content": "You are a helpful assistant made by OpenAI."},
                     {"role": "user", "content": prompt}
                 ]
-            })
+            }, {maxBodyLength: 2000})
             let output = response.data.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
             message.reply(output)
             break;
@@ -520,7 +520,7 @@ async function handleCommand(args, message) {
                 return
             }
             let response = await ai_client.createChatCompletion({
-                model: "gpt-3.5-turbo",
+                model: "gpt-4-1106-preview",
                 messages: [
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": dan_prompt},
