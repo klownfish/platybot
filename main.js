@@ -57,8 +57,9 @@ imagine_parser.add_argument("--guidance", {type: "float"})
 imagine_parser.add_argument("--iterations", {type: "int"})
 
 const premium_servers = [
-    "827312525380026368", //cyberia
-    "239483833353895936" //swas
+    "827312525380026368", // cyberia
+    "239483833353895936", // swas
+    "972930520642125885", // happycord
 ]
 
 const CHAOSCORD = "1038151617159110767"
@@ -481,6 +482,27 @@ async function handleCommand(args, message) {
             } catch (e) {
                 console.log(e)
                 await message.reply("it borked <:basilbruh:860924777891495957>")
+            }
+            break;
+        }
+
+        case "dalle": {
+            if (!premium_servers.includes(message.guildId)) {
+                break;
+            }
+            let prompt = args.slice(1).join(" ")
+            try {
+                const response = await ai_client.createImage({
+                    model: "dall-e-3",
+                    prompt: prompt,
+                    n: 1,
+                    size: "1024x1024",
+                });
+                let image_url = response.data.data[0].url;
+                message.reply(image_url);
+                message.channel.send("Actual prompt: " + response.data.data[0].revised_prompt);
+            } catch (e) {
+                message.reply("NOOO that's a heckin chonkerino unethical prompt")
             }
             break;
         }
