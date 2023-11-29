@@ -406,9 +406,10 @@ async function handleCommand(args, message) {
             }
             break
 
+        case "help":
         case "rules":
             message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
-           break;
+            break;
 
         case "imagine": {
             if (message.guild.id  == ARIESCORD && message.channel.id == ARIESCORD_GENERAL) {
@@ -491,19 +492,25 @@ async function handleCommand(args, message) {
                 break;
             }
             let prompt = args.slice(1).join(" ")
+            let response;
             try {
-                const response = await ai_client.createImage({
+                response = await ai_client.createImage({
                     model: "dall-e-3",
                     prompt: prompt,
                     n: 1,
                     size: "1024x1024",
                 });
-                let image_url = response.data.data[0].url;
-                message.reply(image_url);
-                message.channel.send("Actual prompt: " + response.data.data[0].revised_prompt);
             } catch (e) {
-                message.reply("NOOO that's a heckin chonkerino unethical prompt")
+                await message.reply("NOOO that's a heckin chonkerino unethical prompt")
+                break;
             }
+            let image_url = response.data.data[0].url;
+            let file_response = await axios.get(image_url, {responseType: "arraybuffer"});
+            await message.reply({
+                files: [ {attachment: file_response.data, name: prompt + ".png"}],
+            })
+            await message.channel.send("actual prompt: " + response.data.data[0].revised_prompt);
+
             break;
         }
 
