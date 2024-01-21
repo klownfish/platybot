@@ -2,19 +2,20 @@
     "name": "platybot",
     "version": "1.0.0",
     "dependencies": {
-        "@discordjs/voice": "^0.15.0",
-        "argparse": "^2.0.1",
+        "@discordjs/voice": "latest",
+        "argparse": "latest",
         "axios": "latest",
         "canvas": "latest",
-        "computerender": "^0.1.2",
+        "computerender": "latest",
         "discord.js": "latest",
         "gif.node": "latest",
-        "openai": "^3.2.1",
+        "openai": "latest",
         "package.json": "latest",
-        "puppeteer": "^18.0.5",
+        "puppeteer": "latest",
         "request": "latest",
         "youtube-dl-exec": "latest",
-        "yt-search": "^2.10.3",
-        "ytdl-core": "^4.11.2"
+        "yt-search": "latest",
+        "ytdl-core": "latest",
+        "sharp": "0.31.3"
     }
 }

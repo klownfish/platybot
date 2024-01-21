@@ -13,15 +13,14 @@ const EelSlapper = require('./eel_slap.js');
 const ytdl = require("ytdl-core");
 const Deleter = require('./deleter.js');
 const { PlayerManager, AudioYoutube, AudioListenMoe } = require('./playerManager.js');
-const OpenAI = require('openai');
 const yts = require( 'yt-search')
 const axios = require('axios')
 const cheerio = require("cheerio")
 const { ArgumentParser } = require('argparse');
 const { Computerender } =  require("computerender")
 const sharp = require('sharp');
-const { parse } = require('path');
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
+const {toFile} = require("openai/uploads");
 
 const PREFIX = "p ";
 const THEME_CACHE = "./user_themes.json"
@@ -106,10 +105,7 @@ const deleter = new Deleter();
 const waifu = new Waifu();
 const rocket = new Rocket();
 let cr = new Computerender(keys.computerenderKey);
-const configuration = new Configuration({
-  apiKey: keys.openaiKey,
-});
-const ai_client = new OpenAIApi(configuration);
+const ai_client = new OpenAI({apiKey: keys.openaiKey});
 
 let themes = JSON.parse(fs.readFileSync(THEME_CACHE))
 
@@ -136,19 +132,34 @@ async function handleMessage(message) {
             let args = message.content.substring(PREFIX.length).split(/[ \n]/g);
             await handleCommand(args, message);
         } else
+        if (message.attachments.first()?.name == 'voice-message.ogg') {
+            console.log(message)
+            let audio_url = message.attachments.first().url;
+
+            let audio_response = await axios.get(audio_url, {responseType: "arraybuffer"});
+
+            fs.writeFileSync('/tmp/retard_openai.ogg', audio_response.data)
+
+            let transcription_response = await ai_client.audio.transcriptions.create({
+                file: fs.createReadStream('/tmp/retard_openai.ogg'),
+                model: "whisper-1"
+            });
+
+            message.reply(transcription_response.text)
+        } else
         if (message.content.toLowerCase().includes("platybot") || message.mentions.has(client.user)) {
             let prompt = message.content.trim()
             if (prompt.length > 1000) {
                 return
             }
-            let response = await ai_client.createChatCompletion({
+            let response = await ai_client.chat.completions.create({
                 model: "gpt-4-1106-preview",
                 messages: [
                     {"role": "system", "content": `You are an incredibly friendly woman called Platybot. You love having casual conversations and always respond with lots of emojis. Try to be as nice as possible no matter the situation. You do not want to assist anyone. You are a human, not a chatbot.`},
                     {"role": "user", "content": prompt}
                 ]
             })
-            let output = response.data.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
+            let output = response.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
             message.reply(output)
         } else
         if (message.content.toLowerCase().includes("byo") && Math.random() <= 0.05) {
@@ -494,17 +505,18 @@ async function handleCommand(args, message) {
             let prompt = args.slice(1).join(" ")
             let response;
             try {
-                response = await ai_client.createImage({
+                response = await ai_client.images.generate({
                     model: "dall-e-3",
                     prompt: prompt,
                     n: 1,
                     size: "1024x1024",
                 });
             } catch (e) {
+                console.log(e)
                 await message.reply("NOOO that's a heckin chonkerino unethical prompt")
                 break;
             }
-            let image_url = response.data.data[0].url;
+            let image_url = response.data[0].url;
             let file_response = await axios.get(image_url, {responseType: "arraybuffer"});
             await message.reply({
                 files: [ {attachment: file_response.data, name: prompt + ".png"}],
@@ -530,14 +542,14 @@ async function handleCommand(args, message) {
             if (prompt.length > 1000) {
                 return
             }
-            let response = await ai_client.createChatCompletion({
+            let response = await ai_client.chat.completions.create({
                 model: "gpt-4-1106-preview",
                 messages: [
                     {"role": "system", "content": "You are a helpful assistant made by OpenAI."},
                     {"role": "user", "content": prompt}
                 ]
-            }, {maxBodyLength: 2000})
-            let output = response.data.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
+            }, {maxBodyLength: 1999})
+            let output = response.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
             message.reply(output)
             break;
         }
@@ -548,7 +560,7 @@ async function handleCommand(args, message) {
             if (prompt.length > 1000) {
                 return
             }
-            let response = await ai_client.createChatCompletion({
+            let response = await ai_client.chat.completions.create({
                 model: "gpt-4-1106-preview",
                 messages: [
                     {"role": "system", "content": "You are a helpful assistant."},
@@ -557,7 +569,7 @@ async function handleCommand(args, message) {
                     {"role": "user", "content": prompt}
                 ]
             })
-            let output = response.data.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
+            let output = response.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
             message.reply(output)
             break;
         }
