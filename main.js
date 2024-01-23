@@ -133,7 +133,6 @@ async function handleMessage(message) {
             await handleCommand(args, message);
         } else
         if (message.attachments.first()?.name == 'voice-message.ogg') {
-            console.log(message)
             let audio_url = message.attachments.first().url;
 
             let audio_response = await axios.get(audio_url, {responseType: "arraybuffer"});
@@ -521,7 +520,7 @@ async function handleCommand(args, message) {
             await message.reply({
                 files: [ {attachment: file_response.data, name: prompt + ".png"}],
             })
-            await message.channel.send("actual prompt: " + response.data.data[0].revised_prompt);
+            await message.channel.send("actual prompt: " + response.data[0].revised_prompt);
 
             break;
         }
