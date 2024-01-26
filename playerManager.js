@@ -23,25 +23,27 @@ class AudioYoutube {
     }
 
     async start_func() {
-        if (this.duration != 0) {
+        if (this.duration != 0 || true) {
             this.stream = await ytdl_core(this.link, { filter : 'audioonly' })
             this.resource = createAudioResource(this.stream)
-            setTimeout(this.timeout_func, this.duration * 1000)
+            if (this.duration != 0) {
+                setTimeout(this.timeout_func, this.duration * 1000)
+            }
             return this.resource
         }
-        this.process = ytdl.exec(
-            this.link,
-            {
-                o: '-',
-                q: '',
-                f: 'bestaudio[acodec=opus]',
-                r: '100K',
-            },
-            { stdio: ['ignore', 'pipe', 'ignore'] },
-        );
-        this.stream = this.process.stdout;
-        this.resource = createAudioResource(this.stream);
-        return this.resource
+        // this.process = ytdl.exec(
+        //     this.link,
+        //     {
+        //         o: '-',
+        //         q: '',
+        //         f: 'bestaudio[acodec=opus]',
+        //         r: '100K',
+        //     },
+        //     { stdio: ['ignore', 'pipe', 'ignore'] },
+        // );
+        // this.stream = this.process.stdout;
+        // this.resource = createAudioResource(this.stream);
+        // return this.resource
     }
 
     async stop_func() {
@@ -51,9 +53,9 @@ class AudioYoutube {
         this.stopped = true;
         this.stream.destroy();
 
-        if (this.duration == 0) {
-            this.process.cancel()
-        }
+        // if (this.duration == 0) {
+        //     this.process.cancel()
+        // }
     }
 
     timeout_func() {
