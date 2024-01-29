@@ -146,7 +146,7 @@ async function handleMessage(message) {
 
             message.reply(transcription_response.text)
         } else
-        if (message.content.toLowerCase().includes("platybot") || message.mentions.has(client.user)) {
+        if (message.mentions.has(client.user, {ignoreRepliedUser: true})) {
             let prompt = message.content.trim()
             if (prompt.length > 1000) {
                 return
