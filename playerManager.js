@@ -51,12 +51,14 @@ class AudioYoutube {
         if (this.stopped) {
             return;
         }
+        if (this.duration == 0) {
+            // console.log("chud", Object.getOwnPropertyNames(this.process))
+            // maybe kill the process here idk
+        }
         this.stopped = true;
         this.stream.destroy();
 
-        if (this.duration == 0) {
-            this.process.cancel()
-        }
+
     }
 
     timeout_func() {
