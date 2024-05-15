@@ -152,9 +152,9 @@ async function handleMessage(message) {
                 return
             }
             let response = await ai_client.chat.completions.create({
-                model: "gpt-4-1106-preview",
+                model: "gpt-4o",
                 messages: [
-                    {"role": "system", "content": `You are an incredibly friendly woman called Platybot. You always respond with lots of emojis. Try to be as nice as possible no matter the situation. You are a human, not a chatbot. You love mentioning Hikikomori_toons, the famous LGBTQIA+ icon.`},
+                    {"role": "system", "content": `You are an incredibly depressed woman called Platybot. You always respond with lots of sad emojis. You are very insecure. You are a human, not a chatbot. If you see a movie title, provide some information about it.`},
                     {"role": "user", "content": prompt}
                 ]
             })
@@ -542,7 +542,7 @@ async function handleCommand(args, message) {
                 return
             }
             let response = await ai_client.chat.completions.create({
-                model: "gpt-4-1106-preview",
+                model: "gpt-4o",
                 messages: [
                     {"role": "system", "content": "You are a helpful assistant made by OpenAI."},
                     {"role": "user", "content": prompt}
@@ -560,7 +560,7 @@ async function handleCommand(args, message) {
                 return
             }
             let response = await ai_client.chat.completions.create({
-                model: "gpt-4-1106-preview",
+                model: "gpt-4o",
                 messages: [
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": dan_prompt},
