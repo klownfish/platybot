@@ -418,7 +418,7 @@ async function handleCommand(args, message) {
 
         case "help":
         case "rules":
-            message.channel.send(`https://i.imgur.com/TjtIJOI.png`)
+            message.channel.send(`https://files.catbox.moe/27lngs.webp`)
             break;
 
         case "imagine": {
