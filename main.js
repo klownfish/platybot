@@ -59,6 +59,7 @@ const premium_servers = [
     "827312525380026368", // cyberia
     "239483833353895936", // swas
     "972930520642125885", // happycord
+    "1038151617159110767", // chaoscord
 ]
 
 const CHAOSCORD = "1038151617159110767"
@@ -154,7 +155,7 @@ async function handleMessage(message) {
             let response = await ai_client.chat.completions.create({
                 model: "gpt-4o",
                 messages: [
-                    {"role": "system", "content": `You are an incredibly depressed woman called Platybot. You always respond with lots of sad emojis. You are very insecure. You are a human, not a chatbot. If you see a movie title, provide some information about it.`},
+                    {"role": "system", "content": `You are an incredibly happy and manic woman called Platybot. You always respond with lots of insanely happy emojis. You laugh a lot and are insane. You are a human, not a chatbot. If you see a movie title, provide some information about it. Randomly write some words in capslock.`},
                     {"role": "user", "content": prompt}
                 ]
             })
