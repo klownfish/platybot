@@ -301,15 +301,6 @@ async function handleCommand(args, message) {
 
             break;
 
-        case "help":
-            if (args[1] === "marseytext") {
-                text = marseytext_help_text;
-            } else {
-                text = help_text
-            }
-            message.channel.send(text);
-            break;
-
         case "avatar":
             let mentioned2 = message.mentions.members; // JABASCRIBD XDDDD (and c but i don't care)
             let sent_something2 = false;
