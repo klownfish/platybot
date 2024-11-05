@@ -647,41 +647,23 @@ async function handleCommand(args, message) {
             });
         } break;
 
-        case "autest": {
-            let messages = [message]
-            let filtered_messages = []
-            let userid = message.mentions.members.first().user.id
-            let fetches = 20
-            for (let i = 0; i < fetches; i++) {
-                let partial_messages = await message.channel.messages.fetch({limit: 100, before: messages[messages.length - 1].id,  cache: true})
-                for (let msg of partial_messages) {
-                    messages.push(msg[1])
-                }
-                console.log(messages.length)
+        default: {
+            let prompt = `p ${args.join(" ")}`
+            console.log(prompt)
+            if (prompt.length > 1000) {
+                return
             }
-
-            let f = fs.openSync(userid + ".txt", "w")
-            for (message of messages) {
-                if (message.author.id == userid)  {
-                    if (!message.content) {
-                        continue
-                    }
-                    let filtered_content = message.content.replace(/\<[\s\S]*?\>/g, "")
-                    fs.writeFileSync(f, filtered_content + "\n\n")
-                }
-            }
-            break
-        }
-
-        default:
-            let maybe_emoji = generateEmojiText(args[0]);
-            if (maybe_emoji) {
-                text = maybe_emoji;
-            } else {
-                text = `invalid command. try "p help"`;
-            }
-            message.channel.send(text);
+            let response = await ai_client.chat.completions.create({
+                model: "gpt-4o",
+                messages: [
+                    {"role": "system", "content": "You are an incredibly rude and sarcastic chatbot called platybot. Your commands start with p. like `p repeat` should make you repeat what was said. Don't use p when responding"},
+                    {"role": "user", "content": prompt},
+                ]
+            })
+            let output = response.choices[0].message.content.replace(/@everyone/g, "everyone").replace(/@here/g, "here")
+            message.reply(output)
             break;
+        }
     }
 }
 
